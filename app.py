@@ -203,26 +203,8 @@ def health():
     return jsonify({"status": "running"}), 200
 
 
-@app.route("/admin/reset_conversation/<user_id>", methods=["POST", "GET"])
-@_admin_required
-def admin_reset_conversation(user_id: str):
-    """Wipe a single client's conversation history across all channels.
-
-    Useful when a previous session went off the rails (e.g. wrong language,
-    test data leaked into history) and you want the bot to start fresh
-    with that client. Login required.
-    """
-    from pathlib import Path
-    # Match the same id-to-filename transform claude_ai._conv_path uses.
-    safe = "".join(c for c in user_id if c.isalnum())
-    base = Path(__file__).parent / "conversations"
-    deleted = []
-    for sub in (None, "instagram", "voice"):
-        path = (base / sub / f"{safe}.json") if sub else (base / f"{safe}.json")
-        if path.exists():
-            path.unlink()
-            deleted.append(str(path.relative_to(base)))
-    return jsonify({"deleted": deleted, "user_id": user_id, "safe_id": safe}), 200
+# NOTE: /admin/reset_conversation lives lower in the file, after the
+# _admin_required decorator is defined. Keep this comment as a pointer.
 
 
 # ============================================================================
@@ -452,6 +434,28 @@ def admin_partial_revenue():
         revenue_today=dashboard_data.revenue_today(),
         revenue_week=dashboard_data.revenue_this_week(),
     )
+
+
+@app.route("/admin/reset_conversation/<user_id>", methods=["POST", "GET"])
+@_admin_required
+def admin_reset_conversation(user_id: str):
+    """Wipe a single client's conversation history across all channels.
+
+    Useful when a previous session went off the rails (e.g. wrong language,
+    test data leaked into history) and you want the bot to start fresh
+    with that client. Login required.
+    """
+    from pathlib import Path
+    # Match the same id-to-filename transform claude_ai._conv_path uses.
+    safe = "".join(c for c in user_id if c.isalnum())
+    base = Path(__file__).parent / "conversations"
+    deleted = []
+    for sub in (None, "instagram", "voice"):
+        path = (base / sub / f"{safe}.json") if sub else (base / f"{safe}.json")
+        if path.exists():
+            path.unlink()
+            deleted.append(str(path.relative_to(base)))
+    return jsonify({"deleted": deleted, "user_id": user_id, "safe_id": safe}), 200
 
 
 @app.route("/admin/_waitlist", methods=["GET"])
