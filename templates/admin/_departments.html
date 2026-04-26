@@ -1,0 +1,21 @@
+<h2 class="text-lg font-semibold text-slate-900 mb-4">Today by department</h2>
+
+<div class="space-y-3">
+    {% for d in departments %}
+    <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+            <span class="text-lg">
+                {% if d.key == 'dentistry' %}🦷
+                {% elif d.key == 'laser_hair_removal' %}✨
+                {% elif d.key == 'slimming' %}💆
+                {% elif d.key == 'beauty' %}🌸
+                {% else %}📋{% endif %}
+            </span>
+            <span class="text-sm text-slate-700">{{ d.name }}</span>
+        </div>
+        <span class="text-lg font-semibold {{ 'text-emerald-600' if d.count > 0 else 'text-slate-300' }}">
+            {{ d.count }}
+        </span>
+    </div>
+    {% endfor %}
+</div>

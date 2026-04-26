@@ -1,0 +1,91 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Dashboard — Noora Clinic{% endblock %}
+
+{% block body %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Header -->
+    <header class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-slate-900">Noora Clinic</h1>
+            <p class="text-slate-500 mt-1 flex items-center gap-2">
+                <span class="w-2 h-2 bg-emerald-500 rounded-full live-dot"></span>
+                Live dashboard · refreshes every 10 seconds
+            </p>
+        </div>
+        <a href="{{ url_for('admin_logout') }}" class="text-sm text-slate-600 hover:text-slate-900 transition">
+            Sign out
+        </a>
+    </header>
+
+    <!-- KPIs -->
+    <section
+        hx-get="{{ url_for('admin_partial_kpis') }}"
+        hx-trigger="load"
+        hx-swap="innerHTML"
+    >
+        {% include 'admin/_kpis.html' %}
+    </section>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+
+        <!-- Appointments (tabbed: today / week / month) -->
+        <div id="appointments-section" class="lg:col-span-2 bg-white rounded-2xl shadow-sm p-6"
+             hx-get="{{ url_for('admin_partial_appointments', view='today') }}"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+            {% include 'admin/_appointments.html' %}
+        </div>
+
+        <!-- 7-day chart -->
+        <div class="bg-white rounded-2xl shadow-sm p-6"
+             hx-get="{{ url_for('admin_partial_week') }}"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+            {% include 'admin/_week.html' %}
+        </div>
+
+        <!-- Recent conversations -->
+        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm p-6"
+             hx-get="{{ url_for('admin_partial_conversations') }}"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+            {% include 'admin/_conversations.html' %}
+        </div>
+
+        <!-- Department breakdown -->
+        <div class="bg-white rounded-2xl shadow-sm p-6"
+             hx-get="{{ url_for('admin_partial_departments') }}"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+            {% include 'admin/_departments.html' %}
+        </div>
+
+        <!-- Active packages -->
+        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm p-6"
+             hx-get="{{ url_for('admin_partial_packages') }}"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+            {% include 'admin/_packages.html' %}
+        </div>
+
+        <!-- Today's revenue (operational, for the manager) -->
+        <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-sm p-6 text-white"
+             hx-get="{{ url_for('admin_partial_revenue') }}"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+            {% include 'admin/_revenue.html' %}
+        </div>
+
+        <!-- Waitlist -->
+        <div class="lg:col-span-3 bg-white rounded-2xl shadow-sm p-6"
+             hx-get="{{ url_for('admin_partial_waitlist') }}"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+            {% include 'admin/_waitlist.html' %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

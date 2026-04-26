@@ -1,0 +1,22 @@
+<div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+    <div class="bg-white rounded-xl shadow-sm p-5">
+        <div class="text-3xl font-bold text-emerald-600">{{ kpis.today_count }}</div>
+        <div class="text-sm text-slate-500 mt-1">Today's bookings</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-5">
+        <div class="text-3xl font-bold text-blue-600">{{ kpis.week_count }}</div>
+        <div class="text-sm text-slate-500 mt-1">This week</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-5">
+        <div class="text-3xl font-bold text-purple-600">{{ kpis.active_packages }}</div>
+        <div class="text-sm text-slate-500 mt-1">Active packages</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-5">
+        <div class="text-3xl font-bold text-amber-600">{{ kpis.waitlist_count }}</div>
+        <div class="text-sm text-slate-500 mt-1">On waitlist</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-5">
+        <div class="text-3xl font-bold text-slate-700">{{ kpis.total_clients }}</div>
+        <div class="text-sm text-slate-500 mt-1">Total clients</div>
+    </div>
+</div>

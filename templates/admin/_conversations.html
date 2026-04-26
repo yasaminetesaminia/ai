@@ -1,0 +1,31 @@
+<div class="flex items-center justify-between mb-4">
+    <h2 class="text-lg font-semibold text-slate-900">Recent conversations</h2>
+    <span class="text-sm text-slate-500">{{ conversations|length }} shown</span>
+</div>
+
+{% if conversations %}
+<div class="space-y-2 max-h-96 overflow-y-auto">
+    {% for c in conversations %}
+    <div class="flex items-start gap-3 p-3 hover:bg-slate-50 rounded-lg transition">
+        <div class="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center
+            {% if c.channel == 'whatsapp' %}bg-green-100 text-green-700
+            {% elif c.channel == 'instagram' %}bg-pink-100 text-pink-700
+            {% else %}bg-slate-100 text-slate-700{% endif %}">
+            {% if c.channel == 'whatsapp' %}💬{% elif c.channel == 'instagram' %}📸{% else %}📞{% endif %}
+        </div>
+        <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between gap-2">
+                <span class="font-medium text-slate-900 text-sm truncate">{{ c.user_id }}</span>
+                <span class="text-xs text-slate-400 flex-shrink-0">{{ c.last_seen }}</span>
+            </div>
+            <p class="text-sm text-slate-600 truncate arabic">{{ c.preview }}</p>
+            <span class="text-xs text-slate-400">{{ c.message_count }} message{{ '' if c.message_count == 1 else 's' }}</span>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-8 text-slate-400">
+    <p>No conversations yet</p>
+</div>
+{% endif %}

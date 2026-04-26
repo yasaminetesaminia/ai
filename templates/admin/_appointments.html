@@ -1,0 +1,108 @@
+<!-- Tabbed appointment view: today / week / month.
+     `view` is one of "today", "week", "month".
+     `days` is the grouped list from appointments_grouped_by_day. -->
+
+<div class="flex items-center justify-between mb-4">
+    <h2 class="text-lg font-semibold text-slate-900">Appointments</h2>
+
+    <!-- Tabs -->
+    <div class="flex bg-slate-100 rounded-lg p-1">
+        <button
+            hx-get="{{ url_for('admin_partial_appointments', view='today') }}"
+            hx-target="#appointments-section"
+            hx-swap="innerHTML"
+            class="px-4 py-1.5 text-sm rounded-md transition
+                {% if view == 'today' %}bg-white text-emerald-700 shadow-sm font-medium
+                {% else %}text-slate-600 hover:text-slate-900{% endif %}"
+        >Today</button>
+        <button
+            hx-get="{{ url_for('admin_partial_appointments', view='week') }}"
+            hx-target="#appointments-section"
+            hx-swap="innerHTML"
+            class="px-4 py-1.5 text-sm rounded-md transition
+                {% if view == 'week' %}bg-white text-emerald-700 shadow-sm font-medium
+                {% else %}text-slate-600 hover:text-slate-900{% endif %}"
+        >Week</button>
+        <button
+            hx-get="{{ url_for('admin_partial_appointments', view='month') }}"
+            hx-target="#appointments-section"
+            hx-swap="innerHTML"
+            class="px-4 py-1.5 text-sm rounded-md transition
+                {% if view == 'month' %}bg-white text-emerald-700 shadow-sm font-medium
+                {% else %}text-slate-600 hover:text-slate-900{% endif %}"
+        >Month</button>
+    </div>
+</div>
+
+{% set total_count = namespace(n=0) %}
+{% for d in days %}{% set total_count.n = total_count.n + d.appointments|length %}{% endfor %}
+
+<div class="text-sm text-slate-500 mb-3">
+    {{ total_count.n }} appointment{{ '' if total_count.n == 1 else 's' }}
+    {% if view == 'today' %}today{% elif view == 'week' %}in next 7 days{% else %}in next 30 days{% endif %}
+</div>
+
+<div class="space-y-4 max-h-[36rem] overflow-y-auto pr-2">
+    {% for day in days %}
+        {% if view == 'today' or day.appointments %}
+        <div>
+            <!-- Day header (skip when no appointments AND not today, on week/month) -->
+            {% if view != 'today' %}
+            <div class="flex items-baseline gap-2 mb-2 sticky top-0 bg-white py-1 z-10">
+                <span class="font-semibold text-slate-700">
+                    {% if day.is_today %}Today{% else %}{{ day.day_name }}{% endif %}
+                </span>
+                <span class="text-xs text-slate-400">{{ day.date_label }}</span>
+                {% if day.is_friday %}
+                <span class="ml-auto text-xs px-2 py-0.5 bg-slate-100 text-slate-500 rounded">Closed</span>
+                {% else %}
+                <span class="ml-auto text-xs text-slate-400">
+                    {{ day.appointments|length }} booking{{ '' if day.appointments|length == 1 else 's' }}
+                </span>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Appointments for this day -->
+            {% if day.appointments %}
+            <div class="space-y-1.5">
+                {% for a in day.appointments %}
+                <div class="flex items-start gap-3 p-2.5 hover:bg-slate-50 rounded-lg transition">
+                    <div class="flex-shrink-0 w-14 text-center pt-0.5">
+                        <div class="text-sm font-semibold text-emerald-600">{{ a.time }}</div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="font-medium text-slate-900 text-sm truncate">{{ a.client_name or '—' }}</div>
+                        <div class="text-xs text-slate-500 truncate">{{ a.summary }}</div>
+                    </div>
+                    <div class="flex-shrink-0">
+                        {% if a.channel == 'whatsapp' %}
+                        <span class="inline-flex items-center px-1.5 py-0.5 text-xs bg-green-100 text-green-700 rounded">WA</span>
+                        {% elif a.channel == 'instagram' %}
+                        <span class="inline-flex items-center px-1.5 py-0.5 text-xs bg-pink-100 text-pink-700 rounded">IG</span>
+                        {% else %}
+                        <span class="inline-flex items-center px-1.5 py-0.5 text-xs bg-slate-100 text-slate-600 rounded">{{ a.channel[:2] }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% elif view == 'today' %}
+            <div class="text-center py-8 text-slate-400">
+                <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                <p>No appointments today</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    {% endfor %}
+
+    {% if total_count.n == 0 and view != 'today' %}
+    <div class="text-center py-12 text-slate-400">
+        <p>No appointments scheduled in this range</p>
+    </div>
+    {% endif %}
+</div>

@@ -1,0 +1,19 @@
+<h2 class="text-lg font-semibold text-slate-900 mb-4">Next 7 days</h2>
+
+{% set max_count = (week_chart|map(attribute='count')|max) or 1 %}
+
+<div class="space-y-3">
+    {% for day in week_chart %}
+    {% set pct = (day.count * 100 // max_count) if max_count else 0 %}
+    <div>
+        <div class="flex justify-between items-center text-xs text-slate-500 mb-1">
+            <span>{{ day.day_name }} {{ day.date[5:] }}</span>
+            <span class="font-medium">{{ day.count }}</span>
+        </div>
+        <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-emerald-400 to-emerald-600 rounded-full transition-all"
+                 style="width: {{ pct }}%"></div>
+        </div>
+    </div>
+    {% endfor %}
+</div>

@@ -1,0 +1,23 @@
+<h2 class="text-lg font-semibold mb-1">Today's revenue</h2>
+<p class="text-blue-100 text-sm mb-6">Estimated from booked services</p>
+
+<div class="space-y-4">
+    <div>
+        <div class="text-4xl font-bold">{{ revenue_today.omr }} <span class="text-2xl">OMR</span></div>
+        <div class="text-sm text-blue-100">
+            from {{ revenue_today.appointment_count }} appointment{{ '' if revenue_today.appointment_count == 1 else 's' }}
+        </div>
+    </div>
+
+    <div class="border-t border-blue-300/30 pt-4">
+        <div class="text-2xl font-bold">{{ revenue_week.omr }} OMR</div>
+        <div class="text-sm text-blue-100">projected this week</div>
+    </div>
+
+    {% if revenue_today.unpriced_count > 0 %}
+    <div class="border-t border-blue-300/30 pt-3 text-xs text-blue-100">
+        ⓘ {{ revenue_today.unpriced_count }} appointment{{ '' if revenue_today.unpriced_count == 1 else 's' }}
+        without price data — check service catalog.
+    </div>
+    {% endif %}
+</div>

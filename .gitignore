@@ -1,0 +1,33 @@
+# Secrets and credentials (NEVER commit)
+.env
+credentials.json
+credentials.json.json
+token.json
+*.pem
+*.key
+config.yml
+
+# Claude Code workspace state
+.claude/
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+
+# Local-only data (per-client conversation state, audio caches, etc.)
+conversations/
+
+# Logs and process state
+*.log
+
+# Tunneling executables (downloaded per-machine)
+*.exe
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

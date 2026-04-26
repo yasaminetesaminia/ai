@@ -1,0 +1,36 @@
+<div class="flex items-center justify-between mb-4">
+    <h2 class="text-lg font-semibold text-slate-900">Today's appointments</h2>
+    <span class="text-sm text-slate-500">{{ today|length }} booking{{ '' if today|length == 1 else 's' }}</span>
+</div>
+
+{% if today %}
+<div class="space-y-2 max-h-96 overflow-y-auto">
+    {% for a in today %}
+    <div class="flex items-start gap-4 p-3 hover:bg-slate-50 rounded-lg transition">
+        <div class="flex-shrink-0 w-16 text-center">
+            <div class="text-lg font-semibold text-emerald-600">{{ a.time }}</div>
+        </div>
+        <div class="flex-1 min-w-0">
+            <div class="font-medium text-slate-900 truncate">{{ a.client_name or '—' }}</div>
+            <div class="text-sm text-slate-500 truncate">{{ a.summary }}</div>
+        </div>
+        <div class="flex-shrink-0">
+            {% if a.channel == 'whatsapp' %}
+            <span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded">WhatsApp</span>
+            {% elif a.channel == 'instagram' %}
+            <span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-pink-100 text-pink-700 rounded">Instagram</span>
+            {% else %}
+            <span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-slate-100 text-slate-600 rounded">{{ a.channel }}</span>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-8 text-slate-400">
+    <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+    </svg>
+    <p>No appointments today</p>
+</div>
+{% endif %}

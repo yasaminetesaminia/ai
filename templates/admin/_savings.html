@@ -1,0 +1,25 @@
+<h2 class="text-lg font-semibold mb-1">Cost savings</h2>
+<p class="text-emerald-100 text-sm mb-6">vs hiring a human receptionist</p>
+
+<div class="space-y-4">
+    <div>
+        <div class="text-3xl font-bold">{{ savings.monthly_savings_omr }} OMR</div>
+        <div class="text-sm text-emerald-100">saved every month</div>
+    </div>
+
+    <div class="border-t border-emerald-400/30 pt-4">
+        <div class="text-2xl font-bold">{{ savings.annual_savings_omr }} OMR</div>
+        <div class="text-sm text-emerald-100">per year</div>
+    </div>
+
+    <div class="border-t border-emerald-400/30 pt-4 text-xs text-emerald-100 space-y-1">
+        <div class="flex justify-between">
+            <span>Human receptionist</span>
+            <span>{{ savings.human_monthly_omr }} OMR/mo</span>
+        </div>
+        <div class="flex justify-between">
+            <span>This AI</span>
+            <span>{{ savings.ai_monthly_omr }} OMR/mo</span>
+        </div>
+    </div>
+</div>
