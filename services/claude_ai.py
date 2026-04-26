@@ -15,6 +15,28 @@ _client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
 
 MAX_HISTORY = 40
 
+# Persian-specific characters that don't appear in Arabic. If the message
+# contains any of these, the user wrote (at least partially) in Persian —
+# we wrap the input with a hard instruction to reply in Arabic regardless.
+# Claude Haiku tends to mirror the input language; prompt rules alone
+# weren't enough to stop Persian replies, so we belt-and-suspenders it.
+_PERSIAN_ONLY_CHARS = set("پچژگی‌")  # ZWNJ (U+200C) is also in this set
+
+
+def _looks_persian(text: str) -> bool:
+    return any(c in _PERSIAN_ONLY_CHARS for c in (text or ""))
+
+
+def _wrap_for_persian(text: str) -> str:
+    """Prepend a hard instruction so Claude doesn't reply in Persian."""
+    return (
+        "[SYSTEM NOTE: The next user message contains Persian/Farsi text. "
+        "You MUST reply in OMANI ARABIC, never in Persian. "
+        "Do not apologize for not speaking Persian — just answer the user's "
+        "intent in Arabic naturally, as if they had asked in Arabic.]\n\n"
+        f"User wrote: {text}"
+    )
+
 _CONV_DIR = Path(__file__).resolve().parent.parent / "conversations"
 _CONV_DIR.mkdir(exist_ok=True)
 
@@ -340,7 +362,10 @@ def handle_message(user_id: str, text: str, channel: str = "whatsapp") -> str:
     id_label = channel_cfg["id_label"]
 
     history = _load_history(user_id, channel)
-    history.append({"role": "user", "content": text})
+    # If the user wrote in Persian, wrap with a hard "reply in Arabic"
+    # instruction so Claude doesn't drift into a Persian reply.
+    user_msg = _wrap_for_persian(text) if _looks_persian(text) else text
+    history.append({"role": "user", "content": user_msg})
 
     if len(history) > MAX_HISTORY:
         history = history[-MAX_HISTORY:]

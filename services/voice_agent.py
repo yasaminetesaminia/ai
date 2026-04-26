@@ -115,7 +115,14 @@ class VoiceSession:
                 "audio": elevenlabs_tts.synthesize(reply),
             }
 
-        self.history.append({"role": "user", "content": caller_text})
+        # If transcript contains Persian script, wrap with hard "reply in
+        # Arabic" instruction so Claude doesn't drift into a Persian reply.
+        from services.claude_ai import _looks_persian, _wrap_for_persian
+        msg_for_claude = (
+            _wrap_for_persian(caller_text)
+            if _looks_persian(caller_text) else caller_text
+        )
+        self.history.append({"role": "user", "content": msg_for_claude})
         if len(self.history) > MAX_HISTORY:
             self.history = self.history[-MAX_HISTORY:]
 

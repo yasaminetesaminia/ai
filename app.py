@@ -203,6 +203,27 @@ def health():
     return jsonify({"status": "running"}), 200
 
 
+@app.route("/admin/reset_conversation/<user_id>", methods=["POST", "GET"])
+@_admin_required
+def admin_reset_conversation(user_id: str):
+    """Wipe a single client's conversation history across all channels.
+
+    Useful when a previous session went off the rails (e.g. wrong language,
+    test data leaked into history) and you want the bot to start fresh
+    with that client. Login required.
+    """
+    from pathlib import Path
+    safe = "".join(c for c in user_id if c.isalnum() or c in "+-")
+    base = Path(__file__).parent / "conversations"
+    deleted = []
+    for sub in (None, "instagram", "voice"):
+        path = (base / sub / f"{safe}.json") if sub else (base / f"{safe}.json")
+        if path.exists():
+            path.unlink()
+            deleted.append(str(path.relative_to(base)))
+    return jsonify({"deleted": deleted, "user_id": user_id})
+
+
 # ============================================================================
 # Twilio voice agent — incoming phone calls
 # ============================================================================
