@@ -1,6 +1,18 @@
+import base64
 import logging
+import os
 import socket
 from functools import wraps
+
+# Cloud-deploy bootstrap: when GOOGLE_CREDENTIALS_JSON_B64 is set (Railway,
+# Render, etc.) and credentials.json doesn't exist, decode the env var to
+# disk so google_calendar / google_sheets can load it the normal way. This
+# keeps the secret out of git while letting the same code run locally
+# (where credentials.json sits next to the code) and in the cloud.
+_creds_b64 = os.getenv("GOOGLE_CREDENTIALS_JSON_B64")
+if _creds_b64 and not os.path.exists("credentials.json"):
+    with open("credentials.json", "wb") as _f:
+        _f.write(base64.b64decode(_creds_b64))
 
 # Socket-level timeout for ALL outbound HTTP calls. Without this, a hung
 # Google API SSL handshake can pin a Flask thread forever, eventually
