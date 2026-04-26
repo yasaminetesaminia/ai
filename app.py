@@ -213,7 +213,8 @@ def admin_reset_conversation(user_id: str):
     with that client. Login required.
     """
     from pathlib import Path
-    safe = "".join(c for c in user_id if c.isalnum() or c in "+-")
+    # Match the same id-to-filename transform claude_ai._conv_path uses.
+    safe = "".join(c for c in user_id if c.isalnum())
     base = Path(__file__).parent / "conversations"
     deleted = []
     for sub in (None, "instagram", "voice"):
@@ -221,7 +222,7 @@ def admin_reset_conversation(user_id: str):
         if path.exists():
             path.unlink()
             deleted.append(str(path.relative_to(base)))
-    return jsonify({"deleted": deleted, "user_id": user_id})
+    return jsonify({"deleted": deleted, "user_id": user_id, "safe_id": safe}), 200
 
 
 # ============================================================================
