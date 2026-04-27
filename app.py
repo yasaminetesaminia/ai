@@ -153,30 +153,17 @@ def verify_webhook():
     return "Forbidden", 403
 
 
-@app.route("/webhook", methods=["POST"])
-def handle_webhook():
-    """Handle incoming WhatsApp messages."""
-    payload = request.get_json()
-    logger.info(f"Received webhook payload")
+def _process_whatsapp_message(parsed: dict) -> None:
+    """Heavy lifting (download voice, STT, Claude, send reply) — runs in
+    a background thread so the webhook returns 200 to Meta immediately.
 
-    parsed = whatsapp.parse_incoming(payload)
-    if not parsed:
-        return jsonify({"status": "ignored"}), 200
-
-    # Skip Meta retries and stale webhook deliveries — they're the cause of
-    # phantom "Hey, are you new?" messages popping up hours after the
-    # conversation ended.
-    if _is_duplicate_or_stale(parsed.get("message_id", ""), parsed.get("timestamp", 0)):
-        logger.info(
-            "Skipping stale/duplicate WhatsApp message_id=%s ts=%s from=%s",
-            parsed.get("message_id"), parsed.get("timestamp"), parsed.get("from_phone"),
-        )
-        return jsonify({"status": "skipped_duplicate_or_stale"}), 200
-
+    Meta retries any webhook that doesn't 200 within ~5 seconds; voice
+    transcription + Claude tool-use can easily take 10–30s, which used to
+    cause Meta to retry mid-processing and produce duplicate/late replies.
+    """
     from_phone = parsed["from_phone"]
     message_type = parsed["message_type"]
 
-    # Convert voice to text if needed
     if message_type == "audio" and parsed["media_id"]:
         logger.info(f"Voice message from {from_phone}, transcribing...")
         try:
@@ -187,26 +174,58 @@ def handle_webhook():
             logger.warning(f"Voice transcription failed: {e}")
             text = ""
         if not text.strip():
-            # Graceful fallback: tell the caller to type their message.
             whatsapp.send_message(
                 from_phone,
                 "آسفة، ما قدرت أسمع صوتك بوضوح. ممكن تكتبي رسالتك؟ 🙏\n\n"
                 "Sorry, I couldn't hear your voice clearly. Could you type your message instead?",
             )
-            return jsonify({"status": "voice_fallback"}), 200
+            return
     elif message_type == "text" and parsed["text"]:
         text = parsed["text"]
     else:
-        return jsonify({"status": "unsupported_type"}), 200
+        return
 
-    # Process with Claude AI
     logger.info(f"Message from {from_phone}: {text}")
-    reply = claude_ai.handle_message(from_phone, text, channel="whatsapp")
+    try:
+        reply = claude_ai.handle_message(from_phone, text, channel="whatsapp")
+    except Exception as e:
+        logger.error(f"Claude handle_message failed for {from_phone}: {e}", exc_info=True)
+        return
     logger.info(f"Reply to {from_phone}: {reply}")
 
-    # Send response via WhatsApp
-    whatsapp.send_message(from_phone, reply)
+    if reply:
+        whatsapp.send_message(from_phone, reply)
 
+
+@app.route("/webhook", methods=["POST"])
+def handle_webhook():
+    """Handle incoming WhatsApp messages.
+
+    Returns 200 to Meta immediately, processes the actual reply in a
+    background thread. Without this, transcribing a voice note + running
+    Claude tools (5–30 seconds) makes Meta time out and retry, which
+    previously caused duplicate replies and phantom welcomes.
+    """
+    import threading
+    payload = request.get_json()
+    logger.info(f"Received webhook payload")
+
+    parsed = whatsapp.parse_incoming(payload)
+    if not parsed:
+        return jsonify({"status": "ignored"}), 200
+
+    # Skip Meta retries and stale webhook deliveries.
+    if _is_duplicate_or_stale(parsed.get("message_id", ""), parsed.get("timestamp", 0)):
+        logger.info(
+            "Skipping stale/duplicate WhatsApp message_id=%s ts=%s from=%s",
+            parsed.get("message_id"), parsed.get("timestamp"), parsed.get("from_phone"),
+        )
+        return jsonify({"status": "skipped_duplicate_or_stale"}), 200
+
+    # Hand off to a background thread so we 200 Meta immediately.
+    threading.Thread(
+        target=_process_whatsapp_message, args=(parsed,), daemon=True
+    ).start()
     return jsonify({"status": "ok"}), 200
 
 
@@ -225,9 +244,52 @@ def verify_instagram_webhook():
     return "Forbidden", 403
 
 
+def _process_instagram_message(parsed: dict) -> None:
+    """Background-thread processor for an Instagram DM. Mirrors the
+    WhatsApp version — runs after we've already 200'd Meta to avoid
+    timeout-driven retries.
+    """
+    from_igsid = parsed["from_igsid"]
+    message_type = parsed["message_type"]
+
+    if message_type == "audio" and parsed["media_url"]:
+        logger.info(f"Voice DM from {from_igsid}, transcribing...")
+        try:
+            audio_bytes = instagram.download_media(parsed["media_url"])
+            text = speech_to_text.transcribe(audio_bytes)
+            logger.info(f"Transcribed: {text}")
+        except Exception as e:
+            logger.warning(f"IG voice transcription failed: {e}")
+            text = ""
+        if not text.strip():
+            instagram.send_message(
+                from_igsid,
+                "آسفة، ما قدرت أسمع صوتك بوضوح. ممكن تكتبي رسالتك؟ 🙏\n\n"
+                "Sorry, I couldn't hear your voice clearly. Could you type your message instead?",
+            )
+            return
+    elif message_type == "text" and parsed["text"]:
+        text = parsed["text"]
+    else:
+        return
+
+    logger.info(f"IG message from {from_igsid}: {text}")
+    try:
+        reply = claude_ai.handle_message(from_igsid, text, channel="instagram")
+    except Exception as e:
+        logger.error(f"Claude IG handle_message failed for {from_igsid}: {e}", exc_info=True)
+        return
+    logger.info(f"Reply to {from_igsid}: {reply}")
+    if reply:
+        instagram.send_message(from_igsid, reply)
+
+
 @app.route("/instagram/webhook", methods=["POST"])
 def handle_instagram_webhook():
-    """Handle incoming Instagram DM messages."""
+    """Handle incoming Instagram DM messages — return 200 immediately,
+    process in background thread (same reasoning as WhatsApp webhook).
+    """
+    import threading
     payload = request.get_json()
     logger.info("Received Instagram webhook payload")
 
@@ -242,28 +304,9 @@ def handle_instagram_webhook():
         )
         return jsonify({"status": "skipped_duplicate_or_stale"}), 200
 
-    from_igsid = parsed["from_igsid"]
-    message_type = parsed["message_type"]
-
-    # Convert voice to text if needed
-    if message_type == "audio" and parsed["media_url"]:
-        logger.info(f"Voice DM from {from_igsid}, transcribing...")
-        audio_bytes = instagram.download_media(parsed["media_url"])
-        text = speech_to_text.transcribe(audio_bytes)
-        logger.info(f"Transcribed: {text}")
-    elif message_type == "text" and parsed["text"]:
-        text = parsed["text"]
-    else:
-        return jsonify({"status": "unsupported_type"}), 200
-
-    # Process with Claude AI (Instagram channel → IG prompt + IG conversation store)
-    logger.info(f"IG message from {from_igsid}: {text}")
-    reply = claude_ai.handle_message(from_igsid, text, channel="instagram")
-    logger.info(f"Reply to {from_igsid}: {reply}")
-
-    # Send response via Instagram DM
-    instagram.send_message(from_igsid, reply)
-
+    threading.Thread(
+        target=_process_instagram_message, args=(parsed,), daemon=True
+    ).start()
     return jsonify({"status": "ok"}), 200
 
 

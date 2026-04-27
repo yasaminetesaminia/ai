@@ -36,15 +36,14 @@ def transcribe(audio_bytes: bytes, mime: str = "audio/ogg") -> str:
         tmp.write(audio_bytes)
         tmp_path = Path(tmp.name)
 
-    # For WhatsApp/IG voice messages, auto-detect language. Phone-call STT
-    # forces language=ar because Omani callers will always speak Arabic, but
-    # WhatsApp callers might write English voice notes — we want the bot to
-    # reply in whichever language they actually used.
+    # whisper-medium is ~1s faster than large and accurate enough for
+    # short WhatsApp voice notes. detect_language=true so an English
+    # voice note gets an English-script transcript (and an English reply).
     try:
         result = deepgram_stt.transcribe_file(
             tmp_path,
             params={
-                "model": "whisper-large",
+                "model": "whisper-medium",
                 "detect_language": "true",
                 "smart_format": "true",
                 "punctuate": "true",
