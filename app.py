@@ -120,7 +120,10 @@ def _unhandled(e):
 # Telegram-dependent jobs (weekly_report, token_monitor) are intentionally
 # disabled — re-add them after re-enabling the alerts module.
 scheduler = BackgroundScheduler(timezone=config.BUSINESS_TIMEZONE)
-scheduler.add_job(send_reminders, "interval", hours=1)
+# Reminders run every 15 minutes — short enough that a fresh deployment
+# doesn't sit on an unsent reminder for an hour. Persisted state in
+# reminded_events.json prevents duplicate sends across redeploys.
+scheduler.add_job(send_reminders, "interval", minutes=15, id="reminder_scan")
 # Bidirectional Sheet ↔ Calendar sync so manual entries on either side
 # appear on the other within a couple of minutes.
 scheduler.add_job(sync_all, "interval", minutes=2, id="sheet_calendar_sync")
@@ -136,6 +139,13 @@ scheduler.add_job(
 # write back status/sessions-used.
 scheduler.add_job(sync_packages, "interval", minutes=3, id="packages_sheet_sync")
 scheduler.start()
+
+# Fire reminders once at startup so a fresh deployment immediately picks
+# up any appointments whose 24h window has already opened — without this,
+# a redeploy at 4 PM means the 4 PM reminder waits until the next 15-min
+# scheduler tick instead of going right out.
+import threading as _t
+_t.Thread(target=send_reminders, daemon=True).start()
 
 
 @app.route("/webhook", methods=["GET"])

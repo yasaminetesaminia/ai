@@ -1,12 +1,41 @@
+import json
 import logging
+import os
 
 from services import google_calendar, whatsapp
 import config
 
 logger = logging.getLogger(__name__)
 
-# Track which events already got a reminder (to avoid duplicates)
-_reminded_events: set[str] = set()
+# Persist reminded-event ids to disk so redeploys don't re-send.
+# In-memory only used to mean every Railway restart resent every reminder.
+_STATE_FILE = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "conversations",
+    "reminded_events.json",
+)
+
+
+def _load_reminded() -> set[str]:
+    if not os.path.exists(_STATE_FILE):
+        return set()
+    try:
+        with open(_STATE_FILE, "r", encoding="utf-8") as f:
+            return set(json.load(f))
+    except Exception:
+        return set()
+
+
+def _save_reminded(ids: set[str]) -> None:
+    try:
+        os.makedirs(os.path.dirname(_STATE_FILE), exist_ok=True)
+        with open(_STATE_FILE, "w", encoding="utf-8") as f:
+            json.dump(sorted(ids), f, indent=2)
+    except Exception as e:
+        logger.warning(f"Failed to persist reminded events: {e}")
+
+
+_reminded_events: set[str] = _load_reminded()
 
 
 def send_reminders():
@@ -62,6 +91,7 @@ def send_reminders():
         try:
             whatsapp.send_message(recipient, message)
             _reminded_events.add(event_id)
+            _save_reminded(_reminded_events)
             logger.info(f"Reminder sent via WhatsApp to {recipient} for event {event_id}")
         except Exception as e:
             logger.error(f"Failed to send WhatsApp reminder to {recipient}: {e}")
