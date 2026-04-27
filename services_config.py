@@ -237,6 +237,19 @@ PACKAGES: dict[str, dict] = {
 }
 
 
+# Each department's bookings live in their own worksheet (tab) inside the
+# main Google Sheet. The receptionist gets one clean per-dept view instead
+# of having to filter a single mixed sheet — the value showed up in
+# real use when bookings stacked in raw arrival order and the human kept
+# misreading them.
+DEPARTMENT_SHEET_NAMES = {
+    "dentistry": "Dentistry",
+    "laser_hair_removal": "Laser",
+    "slimming": "Slimming",
+    "beauty": "Beauty",
+}
+
+
 def get_package(code: str) -> dict | None:
     """Look up a package by its catalog code."""
     return PACKAGES.get(code)
