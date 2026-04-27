@@ -241,11 +241,13 @@ def _normalize_content(content):
 
 
 def _transcribe_bytes(audio_bytes: bytes, mime: str) -> str:
-    """Write audio to a temp file so deepgram_stt.transcribe_file can read
-    it, then return the transcript. (Deepgram's REST API accepts raw bytes
-    too, but reusing the existing helper keeps one code path.)
+    """Denoise + normalize phone audio, then run Whisper. Phone calls have
+    much lower audio quality than chat voice notes, so the preprocessing
+    payoff is bigger here.
     """
     import tempfile
+    from services import audio_preprocess
+
     suffix = {
         "audio/mpeg": ".mp3",
         "audio/wav": ".wav",
@@ -254,8 +256,12 @@ def _transcribe_bytes(audio_bytes: bytes, mime: str) -> str:
         "audio/ogg": ".ogg",
     }.get(mime, ".mp3")
 
+    cleaned = audio_preprocess.denoise_and_normalize(audio_bytes, suffix=suffix)
+    if cleaned is not audio_bytes:
+        suffix = ".wav"
+
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
-        tmp.write(audio_bytes)
+        tmp.write(cleaned)
         tmp_path = Path(tmp.name)
     try:
         result = deepgram_stt.transcribe_file(tmp_path)

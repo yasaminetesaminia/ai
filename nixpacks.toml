@@ -1,0 +1,6 @@
+# Tells Railway's nixpacks builder to include ffmpeg in the runtime image
+# so we can preprocess phone-call audio (denoise + loudness normalize)
+# before sending it to Whisper. Without ffmpeg, audio preprocessing
+# silently falls back to the raw recording.
+[phases.setup]
+nixPkgs = ["ffmpeg"]

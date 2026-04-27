@@ -14,7 +14,7 @@ import logging
 import tempfile
 from pathlib import Path
 
-from services import deepgram_stt
+from services import audio_preprocess, deepgram_stt
 
 logger = logging.getLogger(__name__)
 
@@ -32,8 +32,15 @@ def transcribe(audio_bytes: bytes, mime: str = "audio/ogg") -> str:
     elif "wav" in mime:
         suffix = ".wav"
 
+    # Denoise + loudness-normalize before STT. Falls back to raw audio if
+    # ffmpeg is missing — function returns input unchanged in that case.
+    cleaned = audio_preprocess.denoise_and_normalize(audio_bytes, suffix=suffix)
+    # If preprocessing succeeded the bytes are now WAV; update suffix.
+    if cleaned is not audio_bytes:
+        suffix = ".wav"
+
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
-        tmp.write(audio_bytes)
+        tmp.write(cleaned)
         tmp_path = Path(tmp.name)
 
     # whisper-medium is ~1s faster than large and accurate enough for

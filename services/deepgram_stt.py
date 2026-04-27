@@ -160,6 +160,15 @@ def extract_transcript(result: dict) -> str:
         return ""
 
 
+def extract_confidence(result: dict) -> float:
+    """Overall confidence (0..1) of the top transcript. 0 if missing."""
+    try:
+        alts = result["results"]["channels"][0]["alternatives"]
+        return float(alts[0].get("confidence", 0.0)) if alts else 0.0
+    except (KeyError, IndexError, TypeError, ValueError):
+        return 0.0
+
+
 def extract_detected_language(result: dict) -> str | None:
     """Language code Deepgram detected (e.g. 'ar', 'en'), or None."""
     try:
