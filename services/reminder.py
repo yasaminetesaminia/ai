@@ -63,27 +63,24 @@ def send_reminders():
         date = appt["date"]
         time = appt["time"]
 
+        # Reminder is informational only — no questions, no instructions.
+        # If the client wants to change/cancel they'll reply naturally and
+        # the bot will handle it through the normal conversation flow.
         if language == "ar":
             message = (
-                f"مرحباً 👋\n\n"
-                f"تذكير بموعدك في {config.BUSINESS_NAME}:\n\n"
-                f"📋 الخدمة: {summary}\n"
-                f"📅 التاريخ: {date}\n"
-                f"🕐 الوقت: {time}\n\n"
-                f"❌ إذا تبين تلغي، أرسل «إلغاء»\n"
-                f"لأي تعديل آخر، راسلنا هنا.\n\n"
-                f"نشوفك يا غالية، {config.BUSINESS_NAME}"
+                f"تذكير بموعدك في {config.BUSINESS_NAME} 👋\n\n"
+                f"📋 {summary}\n"
+                f"📅 {date}\n"
+                f"🕐 {time}\n\n"
+                f"نشوفك يا غالية 😊"
             )
         else:
             message = (
-                f"Hi there 👋\n\n"
-                f"This is a reminder of your appointment at {config.BUSINESS_NAME}:\n\n"
-                f"📋 Service: {summary}\n"
-                f"📅 Date: {date}\n"
-                f"🕐 Time: {time}\n\n"
-                f"❌ If you need to cancel, reply 'cancel'\n"
-                f"For any other change, just reply here.\n\n"
-                f"See you then, {config.BUSINESS_NAME}"
+                f"Reminder of your appointment at {config.BUSINESS_NAME} 👋\n\n"
+                f"📋 {summary}\n"
+                f"📅 {date}\n"
+                f"🕐 {time}\n\n"
+                f"See you then 😊"
             )
 
         try:
