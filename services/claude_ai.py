@@ -181,13 +181,27 @@ def _execute_tool(tool_name: str, tool_input: dict, channel: str = "whatsapp") -
             doctor=tool_input.get("doctor"),
         )
         if slots:
+            # Group by time-of-day so Claude can pick the right block when
+            # the caller asked for "morning" / "afternoon" / "evening".
+            # Sending only the first 15 slots used to drop ALL afternoon
+            # times silently, then Claude would tell the caller "no
+            # afternoon" — a false statement that broke trust.
+            morning   = [s for s in slots if s < "12:00"]
+            afternoon = [s for s in slots if "12:00" <= s < "17:00"]
+            evening   = [s for s in slots if s >= "17:00"]
             return json.dumps({
-                "available_slots": slots[:15],
+                "available_slots": slots,
                 "total_available": len(slots),
+                "morning_slots": morning,
+                "afternoon_slots": afternoon,
+                "evening_slots": evening,
                 "date": tool_input["date"],
                 "department": tool_input["department"],
-            })
+                "sub_service": tool_input["sub_service"],
+            }, ensure_ascii=False)
         return json.dumps({
+            "available_slots": [],
+            "total_available": 0,
             "message": "No available slots on this date for this department/service.",
             "date": tool_input["date"],
         })
