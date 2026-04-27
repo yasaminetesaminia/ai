@@ -79,12 +79,16 @@ def parse_incoming(payload: dict) -> dict | None:
         if not message:
             return None
 
+        # Carry message_id + timestamp (Meta sends both) so the webhook
+        # handler can dedupe retries and skip stale deliveries.
         result = {
             "from_igsid": sender_id,
             "recipient_id": recipient_id,
             "message_type": "text",
             "text": None,
             "media_url": None,
+            "message_id": message.get("mid", ""),
+            "timestamp": int(message_event.get("timestamp", 0) or 0) // 1000,  # IG sends ms
         }
 
         if "text" in message:

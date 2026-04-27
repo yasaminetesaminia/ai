@@ -59,8 +59,13 @@ def download_media(media_id: str) -> bytes:
 def parse_incoming(payload: dict) -> dict | None:
     """Parse incoming WhatsApp webhook payload.
 
-    Returns dict with keys: from_phone, message_type, text, media_id
-    or None if not a valid user message.
+    Returns dict with keys: from_phone, message_type, text, media_id,
+    message_id, timestamp; or None if not a valid user message.
+
+    Including message_id + timestamp lets the webhook handler dedupe
+    Meta's retry deliveries and skip stale messages — without this, the
+    bot can reply to the same message twice or send fresh welcomes hours
+    after the conversation is over.
     """
     try:
         entry = payload["entry"][0]
@@ -79,6 +84,8 @@ def parse_incoming(payload: dict) -> dict | None:
             "message_type": message_type,
             "text": None,
             "media_id": None,
+            "message_id": message.get("id", ""),
+            "timestamp": int(message.get("timestamp", 0) or 0),
         }
 
         if message_type == "text":

@@ -51,6 +51,47 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 app.secret_key = config.DASHBOARD_SECRET_KEY
 
+# In-memory dedup of Meta webhook message IDs. Meta retries failed deliveries
+# (and sometimes also delivers the same message twice). Without dedup, the
+# bot replies repeatedly or, worse, restarts the conversation hours later
+# when an old retry lands. We keep the most recent N IDs and skip duplicates.
+import collections
+import time
+_RECENT_MESSAGE_IDS: collections.OrderedDict[str, float] = collections.OrderedDict()
+_DEDUP_MAX_AGE_SECONDS = 24 * 60 * 60   # remember IDs for 24h
+_DEDUP_MAX_ENTRIES = 500
+# Skip messages older than this — Meta retry loops can resurface old
+# webhooks long after the conversation ended; treating them as fresh
+# input creates phantom replies.
+_STALE_MESSAGE_AGE_SECONDS = 5 * 60     # 5 minutes
+
+
+def _is_duplicate_or_stale(message_id: str, timestamp: int) -> bool:
+    """Return True if we've already processed this Meta message_id, or if
+    its timestamp is too old to act on. Trims the dedup map opportunistically.
+    """
+    now = time.time()
+    # Stale check
+    if timestamp and (now - timestamp) > _STALE_MESSAGE_AGE_SECONDS:
+        return True
+    # Dedup check
+    if not message_id:
+        return False
+    if message_id in _RECENT_MESSAGE_IDS:
+        return True
+    _RECENT_MESSAGE_IDS[message_id] = now
+    # Trim by age first, then by size.
+    cutoff = now - _DEDUP_MAX_AGE_SECONDS
+    while _RECENT_MESSAGE_IDS:
+        oldest_id = next(iter(_RECENT_MESSAGE_IDS))
+        if _RECENT_MESSAGE_IDS[oldest_id] < cutoff:
+            _RECENT_MESSAGE_IDS.popitem(last=False)
+        else:
+            break
+    while len(_RECENT_MESSAGE_IDS) > _DEDUP_MAX_ENTRIES:
+        _RECENT_MESSAGE_IDS.popitem(last=False)
+    return False
+
 
 @app.errorhandler(HTTPException)
 def _http_error(e):
@@ -122,6 +163,16 @@ def handle_webhook():
     if not parsed:
         return jsonify({"status": "ignored"}), 200
 
+    # Skip Meta retries and stale webhook deliveries — they're the cause of
+    # phantom "Hey, are you new?" messages popping up hours after the
+    # conversation ended.
+    if _is_duplicate_or_stale(parsed.get("message_id", ""), parsed.get("timestamp", 0)):
+        logger.info(
+            "Skipping stale/duplicate WhatsApp message_id=%s ts=%s from=%s",
+            parsed.get("message_id"), parsed.get("timestamp"), parsed.get("from_phone"),
+        )
+        return jsonify({"status": "skipped_duplicate_or_stale"}), 200
+
     from_phone = parsed["from_phone"]
     message_type = parsed["message_type"]
 
@@ -183,6 +234,13 @@ def handle_instagram_webhook():
     parsed = instagram.parse_incoming(payload)
     if not parsed:
         return jsonify({"status": "ignored"}), 200
+
+    if _is_duplicate_or_stale(parsed.get("message_id", ""), parsed.get("timestamp", 0)):
+        logger.info(
+            "Skipping stale/duplicate IG mid=%s ts=%s from=%s",
+            parsed.get("message_id"), parsed.get("timestamp"), parsed.get("from_igsid"),
+        )
+        return jsonify({"status": "skipped_duplicate_or_stale"}), 200
 
     from_igsid = parsed["from_igsid"]
     message_type = parsed["message_type"]
