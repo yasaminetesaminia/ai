@@ -128,9 +128,21 @@ def handle_webhook():
     # Convert voice to text if needed
     if message_type == "audio" and parsed["media_id"]:
         logger.info(f"Voice message from {from_phone}, transcribing...")
-        audio_bytes = whatsapp.download_media(parsed["media_id"])
-        text = speech_to_text.transcribe(audio_bytes)
-        logger.info(f"Transcribed: {text}")
+        try:
+            audio_bytes = whatsapp.download_media(parsed["media_id"])
+            text = speech_to_text.transcribe(audio_bytes)
+            logger.info(f"Transcribed: {text}")
+        except Exception as e:
+            logger.warning(f"Voice transcription failed: {e}")
+            text = ""
+        if not text.strip():
+            # Graceful fallback: tell the caller to type their message.
+            whatsapp.send_message(
+                from_phone,
+                "آسفة، ما قدرت أسمع صوتك بوضوح. ممكن تكتبي رسالتك؟ 🙏\n\n"
+                "Sorry, I couldn't hear your voice clearly. Could you type your message instead?",
+            )
+            return jsonify({"status": "voice_fallback"}), 200
     elif message_type == "text" and parsed["text"]:
         text = parsed["text"]
     else:
