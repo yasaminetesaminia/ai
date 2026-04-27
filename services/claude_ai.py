@@ -168,6 +168,10 @@ def _offer_freed_slot(cancelled_event: dict) -> None:
 
 def _execute_tool(tool_name: str, tool_input: dict, channel: str = "whatsapp") -> str:
     """Execute a tool call and return the result as a string."""
+    import logging as _l
+    _logger = _l.getLogger(__name__)
+    _logger.info("TOOL CALL: %s(%s)", tool_name, tool_input)
+
     if tool_name == "check_available_slots":
         slots = google_calendar.get_available_slots(
             date_str=tool_input["date"],
