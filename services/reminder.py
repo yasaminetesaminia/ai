@@ -70,10 +70,9 @@ def send_reminders():
                 f"📋 الخدمة: {summary}\n"
                 f"📅 التاريخ: {date}\n"
                 f"🕐 الوقت: {time}\n\n"
-                f"✅ للتأكيد: أرسل «أكد»\n"
-                f"❌ للإلغاء: أرسل «إلغاء»\n"
+                f"❌ إذا تبين تلغي، أرسل «إلغاء»\n"
                 f"لأي تعديل آخر، راسلنا هنا.\n\n"
-                f"شكراً، {config.BUSINESS_NAME}"
+                f"نشوفك يا غالية، {config.BUSINESS_NAME}"
             )
         else:
             message = (
@@ -82,10 +81,9 @@ def send_reminders():
                 f"📋 Service: {summary}\n"
                 f"📅 Date: {date}\n"
                 f"🕐 Time: {time}\n\n"
-                f"✅ To confirm: reply 'confirm'\n"
-                f"❌ To cancel: reply 'cancel'\n"
+                f"❌ If you need to cancel, reply 'cancel'\n"
                 f"For any other change, just reply here.\n\n"
-                f"Thank you, {config.BUSINESS_NAME}"
+                f"See you then, {config.BUSINESS_NAME}"
             )
 
         try:
