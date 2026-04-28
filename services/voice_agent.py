@@ -166,7 +166,21 @@ class VoiceSession:
                     continue
                 # Channel="whatsapp" so reminders still go via WhatsApp to
                 # the caller's phone (same number, same real human).
-                result = _execute_tool(block.name, block.input, channel="whatsapp")
+                try:
+                    result = _execute_tool(block.name, block.input, channel="whatsapp")
+                except Exception as e:
+                    # If a tool raises (e.g. Google API blip), don't crash the
+                    # whole turn — feed the error back to Claude so it can
+                    # apologise/retry verbally instead of silently dropping.
+                    logger.error(
+                        "Tool %s failed for %s: %s",
+                        block.name, self.caller_phone, e, exc_info=True,
+                    )
+                    result = json.dumps({
+                        "success": False,
+                        "error": f"{block.name} failed: {e}",
+                        "message": "Tool error — apologise to the caller and offer to try again.",
+                    })
                 tool_results.append({
                     "type": "tool_result",
                     "tool_use_id": block.id,
