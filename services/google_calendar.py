@@ -91,7 +91,8 @@ def _count_overlapping(events: list[dict], slot_start: datetime, slot_end: datet
         if f"[{department}]" not in summary:
             continue
 
-        # For beauty department, filter by doctor
+        # When a specific doctor is requested (multi-doctor depts like
+        # dermatology and aesthetics), only count their existing bookings.
         if doctor and doctor not in summary:
             continue
 

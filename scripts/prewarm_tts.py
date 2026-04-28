@@ -20,19 +20,21 @@ from services import elevenlabs_tts  # noqa: E402
 # Phrases the voice agent emits constantly. Pre-cache them so callers
 # never wait on these. Keep this list small — only repeat-traffic phrases.
 COMMON_PHRASES = [
-    # Bilingual greeting (most-played phrase by far)
-    "أهلاً بك في عيادة نورا، كيف ممكن أساعدك؟ Welcome to Noora Clinic, how can I help you?",
+    # Lavora's bilingual greeting (most-played phrase by far)
+    "Thank you for calling Lavora Clinic, where science, beauty, and longevity meet. How may I assist you today? أهلاً بك، تقدر تتكلم عربي إذا تحب.",
     # Re-prompts when STT mishears
+    "Sorry, I didn't catch that — could you say it again?",
     "آسفة، ما سمعت. ممكن تعيدي؟",
-    "آسفة، ممكن تعيدي؟",
     # Common openers and acknowledgements
-    "حياك الله! إيش أقدر أسوي لك اليوم؟",
-    "تمام، لحظة من فضلك.",
-    "دقيقة، أتأكد لك.",
-    "في أمان الله!",
-    "مشكورة يا غالية، في أمان الله.",
-    "إيش الخدمة اللي تبين؟ عندنا طب الأسنان، الليزر، التنحيف، والتجميل.",
-    "تمام، أحجز لك الموعد. لحظة.",
+    "Of course — how can I help you today?",
+    "حياك الله! كيف ممكن أساعدك اليوم؟",
+    "One moment, please.",
+    "لحظة من فضلك.",
+    "Thank you for calling Lavora — have a wonderful day.",
+    "في أمان الله، نشوفك إن شاء الله.",
+    # Service menu (the most-spoken intro after the greeting)
+    "We offer dermatology, non-surgical aesthetics, regenerative therapies, body slimming, aesthetic gynecology, and laser hair removal — which one interests you?",
+    "عندنا الجلدية، التجميل غير الجراحي، العلاجات التجديدية، التنحيف، أمراض النساء التجميلية، وإزالة الشعر بالليزر — أي قسم يهمك؟",
 ]
 
 

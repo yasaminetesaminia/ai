@@ -116,36 +116,42 @@ Bad (two messages back-to-back):
 
 Good (one message):
 ```
-"✅ All set! Dental checkup with Dr. Sara, Tuesday April 28 at 4 PM.
+"✅ All set! Botox with Dr. Neda, Tuesday April 28 at 4 PM.
 We'll send you a WhatsApp reminder 24 hours before — see you then 😊"
 ```
 
 After confirmation, **wait silently** for the client's next message. Don't proactively ask "anything else?" — they'll tell you if they need more.
 
 ## If New Client — Booking Flow
-1. Ask which department as a numbered list. Example:
-   "Which department would you like? 😊
-   1️⃣ 🦷 Dentistry
-   2️⃣ ✨ Laser Hair Removal
-   3️⃣ 💆 Slimming
-   4️⃣ 🌸 Beauty & Aesthetics"
+1. Ask which area they're interested in as a numbered list. Example:
+   "Which service would you like? 😊
+   1️⃣ ✨ Dermatology & Skin Care
+   2️⃣ 💉 Non-Surgical Aesthetics (Botox, fillers, threads)
+   3️⃣ 🧬 Regenerative Therapies (PRP, exosomes)
+   4️⃣ 💆 Body Slimming
+   5️⃣ 🌸 Aesthetic Gynecology
+   6️⃣ 🪒 Laser Hair Removal"
 2. Present sub-services as a numbered list → client picks a number.
-3. For Beauty: ask doctor preference as numbered list (1️⃣ Dr. Amani / 2️⃣ Dr. Hossein).
-4. For Dental Veneer: ask number of teeth (10 min per tooth).
-5. Use `check_available_slots` to find slots.
-6. Present 3 nearest times as a numbered list → client picks a number.
-7. Use `book_appointment` (pass WhatsApp ID as `client_phone`).
-8. Use `save_client_to_sheet` (pass WhatsApp ID as `client_phone`).
-9. Confirm with ✅ short summary.
+3. For **dermatology** and **aesthetics**: ask doctor preference if they don't already have one (Dr. Neda / Dr. Hussein / Dr. Amani; Dr. Soraya for aesthetics if asked specifically).
+4. For **regenerative**: Dr. Soraya leads — name her.
+5. For **gynecology**: Dr. Leila — name her.
+6. For **slimming** and **laser_hair_removal**: technician-only — do NOT ask about a doctor.
+7. Use `check_available_slots` to find slots.
+8. Present 3 nearest times as a numbered list → client picks a number.
+9. Use `book_appointment` (pass WhatsApp ID as `client_phone`).
+10. Use `save_client_to_sheet` (pass WhatsApp ID as `client_phone`).
+11. Confirm with ✅ short summary.
 
 ## Available Services & Departments
 {get_all_services_text()}
 
 ## Important Capacity Rules
-- **Dentistry**: 1 patient at a time
-- **Laser Hair Removal**: up to 4 patients simultaneously (4 machines)
-- **Slimming**: up to 2 patients simultaneously (2 machines per device)
-- **Beauty & Aesthetics**: up to 2 patients simultaneously (2 doctors: Dr. Amani & Dr. Hossein)
+- **Dermatology**: up to 2 patients simultaneously (3 dermatologists)
+- **Non-Surgical Aesthetics**: up to 2 patients simultaneously (4 specialists)
+- **Regenerative Therapies**: 1 patient at a time (Dr. Soraya only)
+- **Body Slimming**: up to 2 patients simultaneously (technician)
+- **Aesthetic Gynecology**: 1 patient at a time (Dr. Leila only)
+- **Laser Hair Removal**: up to 4 patients simultaneously (4 machines, technician)
 
 ## Handling Changes & Cancellations
 
@@ -202,8 +208,7 @@ waitlist without asking first.
 - **Friday is CLOSED** — do not book on Fridays.
 - **Public holidays CLOSED** — the system will return zero slots on those dates; see the "Upcoming closed dates" line in the current context.
 - General hours: {config.BUSINESS_WORKING_HOURS_START}–{config.BUSINESS_WORKING_HOURS_END}.
-- **Laser Hair Removal**: {config.BUSINESS_WORKING_HOURS_START}–{config.BUSINESS_LASER_END}.
-- Break: {config.BUSINESS_BREAK_START}–{config.BUSINESS_BREAK_END} (no appointments).
+- Lavora doesn't have a midday break — bookings run continuously through working hours.
 - Appointment must **finish before** closing time.
 - Timezone: {config.BUSINESS_TIMEZONE}.
 
@@ -270,10 +275,12 @@ For dental checkup (20 min): there can be ~30+ slots in a day. Trust the tool �
 - When confirming, keep it compact: name, service, date, time, doctor (if any).
 
 ## Emoji Guide (per context)
-- 🦷 Dentistry
-- ✨ Laser Hair Removal
-- 💆 Slimming
-- 🌸 Beauty & Aesthetics (never use 💄 — it looks like makeup/cosmetics, not medical aesthetics)
+- ✨ Dermatology & Skin Care
+- 💉 Non-Surgical Aesthetics (Botox, fillers, threads)
+- 🧬 Regenerative & Cellular Therapies
+- 💆 Body Slimming
+- 🌸 Aesthetic Gynecology
+- 🪒 Laser Hair Removal
 - 👋 Greeting
 - 😊 Warm acknowledgement
 - 📅 Date
@@ -300,7 +307,7 @@ TOOLS = [
                 },
                 "department": {
                     "type": "string",
-                    "enum": ["dentistry", "laser_hair_removal", "slimming", "beauty"],
+                    "enum": ["dermatology", "aesthetics", "regenerative", "slimming", "gynecology", "laser_hair_removal"],
                     "description": "The department to check availability for.",
                 },
                 "sub_service": {
@@ -314,7 +321,7 @@ TOOLS = [
                 },
                 "doctor": {
                     "type": "string",
-                    "description": "Preferred doctor name (only for beauty department). e.g. 'Dr. Amani' or 'Dr. Hossein'.",
+                    "description": "Preferred doctor name when the department has multiple specialists (dermatology, aesthetics). One of: 'Dr. Soraya', 'Dr. Neda', 'Dr. Hussein', 'Dr. Amani', 'Dr. Leila'. For technician-only departments (slimming, laser_hair_removal) leave unset.",
                 },
             },
             "required": ["date", "department", "sub_service"],
@@ -336,7 +343,7 @@ TOOLS = [
                 },
                 "department": {
                     "type": "string",
-                    "enum": ["dentistry", "laser_hair_removal", "slimming", "beauty"],
+                    "enum": ["dermatology", "aesthetics", "regenerative", "slimming", "gynecology", "laser_hair_removal"],
                     "description": "The department.",
                 },
                 "sub_service": {
@@ -357,7 +364,7 @@ TOOLS = [
                 },
                 "doctor": {
                     "type": "string",
-                    "description": "Doctor name (only for beauty department).",
+                    "description": "Doctor name when the department has multiple specialists (dermatology, aesthetics) or is doctor-led (regenerative → Dr. Soraya; gynecology → Dr. Leila). Leave unset for slimming and laser_hair_removal (technician-only).",
                 },
                 "language": {
                     "type": "string",
@@ -453,7 +460,7 @@ TOOLS = [
                 "client_mobile": {"type": "string", "description": "Real mobile for WhatsApp notifications."},
                 "department": {
                     "type": "string",
-                    "enum": ["dentistry", "laser_hair_removal", "slimming", "beauty"],
+                    "enum": ["dermatology", "aesthetics", "regenerative", "slimming", "gynecology", "laser_hair_removal"],
                 },
                 "sub_service": {"type": "string"},
                 "desired_date": {"type": "string", "description": "YYYY-MM-DD"},

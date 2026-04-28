@@ -1,75 +1,311 @@
 """
-Noora Clinic — Service Definitions
+Lavora Clinic — Service Definitions
+
+Lavora is a multi-speciality aesthetic, dermatology, and regenerative
+medicine clinic in Muscat. Service catalogue and doctor list come from
+the public clinic brief — see prompts/voice_receptionist.py for the full
+brand profile that the receptionist uses.
 
 Each department has:
 - capacity: how many clients can be served simultaneously
-- doctors: (optional) list of doctors, client must choose one
+- doctor / doctors: which specialist(s) handle the department
 - sub_services: specific treatments with their duration in minutes
+
+Pricing note: the public brief does not list prices. The OMR figures
+below are placeholders chosen to be reasonable for a luxury aesthetic
+clinic in Muscat — replace with the clinic's real card before going
+live. They are flagged as `_placeholder_price: True` for any tooling
+that wants to surface that uncertainty.
 """
 
 SERVICES = {
-    "dentistry": {
-        "name": "Dentistry",
-        "name_ar": "طب الأسنان",
-        "capacity": 1,
-        "doctor": "Dr. Sara",  # staff dentist — mentioned to callers when relevant
+    "dermatology": {
+        "name": "Dermatology & Medical Skin Care",
+        "name_ar": "الأمراض الجلدية والعناية الطبية بالبشرة",
+        "capacity": 2,
+        # Multiple dermatology specialists; caller can choose or we route.
+        "doctors": ["Dr. Hussein", "Dr. Neda", "Dr. Amani"],
         "sub_services": {
-            "checkup": {"name": "Dental Checkup", "name_ar": "فحص أسنان", "duration": 20, "price_omr": 10},
-            "filling": {"name": "Dental Filling", "name_ar": "حشو أسنان", "duration": 35, "price_omr": 30},
-            "root_canal": {"name": "Root Canal Treatment", "name_ar": "علاج جذور", "duration": 45, "price_omr": 90},
-            "veneer": {
-                "name": "Dental Veneer (Laminate)",
-                "name_ar": "تلبيس أسنان (لامينيت)",
-                "duration_per_unit": 10,
-                "unit": "tooth",
-                "price_omr": 100,  # per tooth
-                "price_unit": "per tooth",
+            "frax_pro": {
+                "name": "Frax Pro Laser",
+                "name_ar": "ليزر فراكس برو",
+                "duration": 45,
+                "price_omr": 180,
+                "_placeholder_price": True,
             },
-            "implant": {"name": "Dental Implant", "name_ar": "زراعة أسنان", "duration": 75, "price_omr": 300},
+            "picoway": {
+                "name": "Picoway Laser",
+                "name_ar": "ليزر بيكوواي",
+                "duration": 45,
+                "price_omr": 200,
+                "_placeholder_price": True,
+            },
+            "redtouch": {
+                "name": "RedTouch Laser",
+                "name_ar": "ليزر ريد تاتش",
+                "duration": 30,
+                "price_omr": 150,
+                "_placeholder_price": True,
+            },
+            "skin_resurfacing": {
+                "name": "Skin Resurfacing",
+                "name_ar": "تجديد البشرة",
+                "duration": 45,
+                "price_omr": 160,
+                "_placeholder_price": True,
+            },
+            "chemical_peel": {
+                "name": "Chemical Peel",
+                "name_ar": "التقشير الكيميائي",
+                "duration": 30,
+                "price_omr": 90,
+                "_placeholder_price": True,
+            },
+            "scar_stretch_mark": {
+                "name": "Scar & Stretch Mark Treatment",
+                "name_ar": "علاج الندبات وعلامات التمدد",
+                "duration": 45,
+                "price_omr": 140,
+                "_placeholder_price": True,
+            },
+            "vascular_laser": {
+                "name": "Vascular Laser",
+                "name_ar": "ليزر الأوعية الدموية",
+                "duration": 30,
+                "price_omr": 130,
+                "_placeholder_price": True,
+            },
+        },
+    },
+    "aesthetics": {
+        "name": "Non-Surgical Aesthetics",
+        "name_ar": "التجميل غير الجراحي",
+        "capacity": 2,
+        "doctors": ["Dr. Soraya", "Dr. Neda", "Dr. Hussein", "Dr. Amani"],
+        "sub_services": {
+            "botox": {
+                "name": "Botox",
+                "name_ar": "بوتوكس",
+                "duration": 30,
+                "price_omr": 150,
+                "price_unit": "per area",
+                "_placeholder_price": True,
+            },
+            "dermal_filler": {
+                "name": "Dermal Filler",
+                "name_ar": "فيلر",
+                "duration": 45,
+                "price_omr": 180,
+                "price_unit": "per syringe",
+                "_placeholder_price": True,
+            },
+            "profhilo": {
+                "name": "Profhilo Skinbooster",
+                "name_ar": "بروفايلو",
+                "duration": 30,
+                "price_omr": 220,
+                "_placeholder_price": True,
+            },
+            "polynucleotides": {
+                "name": "Polynucleotides Skinbooster",
+                "name_ar": "بولينوكليوتيدات",
+                "duration": 30,
+                "price_omr": 250,
+                "_placeholder_price": True,
+            },
+            "korean_thread_lift": {
+                "name": "Korean Thread Lift",
+                "name_ar": "شد الوجه بالخيوط الكورية",
+                "duration": 60,
+                "price_omr": 300,
+                "_placeholder_price": True,
+            },
+            "aptos_thread_lift": {
+                "name": "Aptos Thread Lift",
+                "name_ar": "شد الوجه بخيوط أبتوس",
+                "duration": 75,
+                "price_omr": 400,
+                "_placeholder_price": True,
+            },
+            "endolift": {
+                "name": "Endolift",
+                "name_ar": "إندوليفت",
+                "duration": 60,
+                "price_omr": 450,
+                "_placeholder_price": True,
+            },
+            "fotona_4d": {
+                "name": "Fotona 4D Facial Lifting",
+                "name_ar": "فوتونا فور دي لشد الوجه",
+                "duration": 60,
+                "price_omr": 280,
+                "_placeholder_price": True,
+            },
+        },
+    },
+    "regenerative": {
+        "name": "Regenerative & Cellular Therapies",
+        "name_ar": "العلاجات التجديدية والخلوية",
+        "capacity": 1,
+        "doctor": "Dr. Soraya",  # founder, leads regenerative medicine
+        "sub_services": {
+            "prp": {
+                "name": "PRP (Platelet-Rich Plasma)",
+                "name_ar": "بلازما الصفائح الدموية الغنية",
+                "duration": 45,
+                "price_omr": 180,
+                "_placeholder_price": True,
+            },
+            "mesotherapy": {
+                "name": "Mesotherapy",
+                "name_ar": "الميزوثيرابي",
+                "duration": 45,
+                "price_omr": 150,
+                "_placeholder_price": True,
+            },
+            "exosome_therapy": {
+                "name": "Exosome Therapy",
+                "name_ar": "علاج الإكسوسومات",
+                "duration": 60,
+                "price_omr": 350,
+                "_placeholder_price": True,
+            },
+            "stem_cell_fat_transfer": {
+                "name": "Stem Cell Fat Transfer",
+                "name_ar": "نقل الدهون بالخلايا الجذعية",
+                "duration": 90,
+                "price_omr": 800,
+                "_placeholder_price": True,
+            },
+        },
+    },
+    "slimming": {
+        "name": "Body Slimming",
+        "name_ar": "تنحيف الجسم",
+        "capacity": 2,
+        "doctor": None,  # device-based; performed by trained technician
+        "sub_services": {
+            "onda_plus": {
+                "name": "Onda Plus",
+                "name_ar": "أوندا بلس",
+                "duration": 60,
+                "price_omr": 90,
+                "_placeholder_price": True,
+            },
+            "redustim": {
+                "name": "Redustim",
+                "name_ar": "ريدوستيم",
+                "duration": 45,
+                "price_omr": 70,
+                "_placeholder_price": True,
+            },
+            "body_wrap": {
+                "name": "Body Wrap",
+                "name_ar": "لفائف الجسم",
+                "duration": 60,
+                "price_omr": 50,
+                "_placeholder_price": True,
+            },
+        },
+    },
+    "gynecology": {
+        "name": "Aesthetic Gynecology",
+        "name_ar": "أمراض النساء التجميلية",
+        "capacity": 1,
+        "doctor": "Dr. Leila",  # MD, OB/GYN specialist
+        "sub_services": {
+            "vaginal_rejuvenation": {
+                "name": "Vaginal Rejuvenation",
+                "name_ar": "تجديد المهبل",
+                "duration": 45,
+                "price_omr": 250,
+                "_placeholder_price": True,
+            },
+            "pelvic_floor": {
+                "name": "Pelvic Floor Strengthening",
+                "name_ar": "تقوية قاع الحوض",
+                "duration": 30,
+                "price_omr": 120,
+                "_placeholder_price": True,
+            },
+            "intimate_rejuvenation": {
+                "name": "Non-Surgical Intimate Rejuvenation",
+                "name_ar": "تجديد المنطقة الحساسة دون جراحة",
+                "duration": 45,
+                "price_omr": 200,
+                "_placeholder_price": True,
+            },
+            "vaginoplasty": {
+                "name": "Vaginoplasty (Surgical)",
+                "name_ar": "تجميل المهبل (جراحي)",
+                "duration": 120,
+                "price_omr": 1500,
+                "_placeholder_price": True,
+            },
+            "labiaplasty": {
+                "name": "Labiaplasty (Surgical)",
+                "name_ar": "تجميل الشفرين (جراحي)",
+                "duration": 90,
+                "price_omr": 1200,
+                "_placeholder_price": True,
+            },
         },
     },
     "laser_hair_removal": {
         "name": "Laser Hair Removal",
         "name_ar": "إزالة الشعر بالليزر",
         "capacity": 4,
-        "doctor": None,  # technician-only — don't ask or name them to callers
+        "doctor": None,  # technician-only
         "sub_services": {
-            "bikini": {"name": "Bikini Laser", "name_ar": "ليزر البكيني", "duration": 15, "price_omr": 20},
-            "full_body_partial": {
-                "name": "Full Body Laser (excluding back & abdomen)",
-                "name_ar": "ليزر الجسم (بدون الظهر والبطن)",
-                "duration": 45,
-                "price_omr": 75,
+            "bikini": {
+                "name": "Bikini Laser",
+                "name_ar": "ليزر البكيني",
+                "duration": 15,
+                "price_omr": 25,
+                "_placeholder_price": True,
             },
-            "full_body": {"name": "Full Body Laser", "name_ar": "ليزر كامل الجسم", "duration": 60, "price_omr": 100},
-        },
-    },
-    "slimming": {
-        "name": "Slimming & Body Contouring",
-        "name_ar": "التنحيف ونحت الجسم",
-        "capacity": 2,
-        "doctor": "Dr. Enas",  # slimming physician
-        "sub_services": {
-            "schwarzy": {"name": "Schwarzy", "name_ar": "شفارزي", "duration": 60, "price_omr": 60},
-            "onda_plus": {"name": "Onda Plus", "name_ar": "أوندا بلس", "duration": 60, "price_omr": 70},
-            "radiosteam": {"name": "Radiosteam", "name_ar": "راديو ستيم", "duration": 60, "price_omr": 50},
-        },
-    },
-    "beauty": {
-        "name": "Beauty & Aesthetics",
-        "name_ar": "التجميل",
-        "capacity": 2,
-        "doctors": ["Dr. Amani", "Dr. Hossein"],  # caller chooses
-        "sub_services": {
-            "skin_lift": {"name": "Skin Lift", "name_ar": "شد البشرة", "duration": 20, "price_omr": 60},
-            "laser_spots_wrinkles": {
-                "name": "Laser Treatment (spots & wrinkles)",
-                "name_ar": "ليزر للبقع والتجاعيد",
+            "underarms": {
+                "name": "Underarms Laser",
+                "name_ar": "ليزر تحت الإبط",
+                "duration": 15,
+                "price_omr": 20,
+                "_placeholder_price": True,
+            },
+            "face": {
+                "name": "Face Laser",
+                "name_ar": "ليزر الوجه",
                 "duration": 20,
-                "price_omr": 80,
+                "price_omr": 30,
+                "_placeholder_price": True,
             },
-            "botox": {"name": "Botox", "name_ar": "بوتوكس", "duration": 20, "price_omr": 120, "price_unit": "per session"},
-            "filler": {"name": "Filler", "name_ar": "فيلر", "duration": 20, "price_omr": 150, "price_unit": "per syringe"},
+            "legs": {
+                "name": "Legs Laser",
+                "name_ar": "ليزر الساقين",
+                "duration": 30,
+                "price_omr": 50,
+                "_placeholder_price": True,
+            },
+            "arms": {
+                "name": "Arms Laser",
+                "name_ar": "ليزر الذراعين",
+                "duration": 25,
+                "price_omr": 40,
+                "_placeholder_price": True,
+            },
+            "full_body_women": {
+                "name": "Full Body Laser (Women)",
+                "name_ar": "ليزر كامل الجسم للسيدات",
+                "duration": 60,
+                "price_omr": 120,
+                "_placeholder_price": True,
+            },
+            "full_body_men": {
+                "name": "Full Body Laser (Men)",
+                "name_ar": "ليزر كامل الجسم للرجال",
+                "duration": 60,
+                "price_omr": 130,
+                "_placeholder_price": True,
+            },
         },
     },
 }
@@ -172,7 +408,10 @@ def get_service_price(department: str, sub_service: str) -> dict | None:
 # Pre-paid multi-session packages. Client buys a bundle up front at a
 # discount; each booking against a matching service deducts one session.
 # `sub_service = "_any_"` makes the package usable for any sub_service
-# within the department (e.g., flexible laser package).
+# within the department.
+#
+# Pricing here is also placeholder — calibrate against the real Lavora
+# package card before going live.
 PACKAGES: dict[str, dict] = {
     "laser_bikini_6": {
         "name_en": "Bikini Laser — 6 Sessions",
@@ -180,38 +419,38 @@ PACKAGES: dict[str, dict] = {
         "department": "laser_hair_removal",
         "sub_service": "bikini",
         "total_sessions": 6,
-        "price_omr": 90.0,
-        "regular_price_omr": 120.0,
+        "price_omr": 120.0,
+        "regular_price_omr": 150.0,
         "validity_months": 12,
     },
-    "laser_bikini_10": {
-        "name_en": "Bikini Laser — 10 Sessions",
-        "name_ar": "ليزر البكيني — 10 جلسات",
+    "laser_full_body_women_6": {
+        "name_en": "Full Body Laser (Women) — 6 Sessions",
+        "name_ar": "ليزر كامل الجسم للسيدات — 6 جلسات",
         "department": "laser_hair_removal",
-        "sub_service": "bikini",
-        "total_sessions": 10,
-        "price_omr": 140.0,
-        "regular_price_omr": 200.0,
-        "validity_months": 12,
-    },
-    "laser_full_body_6": {
-        "name_en": "Full Body Laser — 6 Sessions",
-        "name_ar": "ليزر كامل الجسم — 6 جلسات",
-        "department": "laser_hair_removal",
-        "sub_service": "full_body",
+        "sub_service": "full_body_women",
         "total_sessions": 6,
-        "price_omr": 300.0,
-        "regular_price_omr": 420.0,
+        "price_omr": 600.0,
+        "regular_price_omr": 720.0,
         "validity_months": 12,
     },
-    "slimming_schwarzy_8": {
-        "name_en": "Schwarzy Body Sculpting — 8 Sessions",
-        "name_ar": "نحت الجسم شفارزي — 8 جلسات",
-        "department": "slimming",
-        "sub_service": "schwarzy",
-        "total_sessions": 8,
-        "price_omr": 320.0,
-        "regular_price_omr": 480.0,
+    "botox_3": {
+        "name_en": "Botox — 3 Areas",
+        "name_ar": "بوتوكس — 3 مناطق",
+        "department": "aesthetics",
+        "sub_service": "botox",
+        "total_sessions": 3,
+        "price_omr": 400.0,
+        "regular_price_omr": 450.0,
+        "validity_months": 6,
+    },
+    "prp_4": {
+        "name_en": "PRP — 4 Sessions",
+        "name_ar": "بلازما الصفائح — 4 جلسات",
+        "department": "regenerative",
+        "sub_service": "prp",
+        "total_sessions": 4,
+        "price_omr": 600.0,
+        "regular_price_omr": 720.0,
         "validity_months": 6,
     },
     "slimming_any_10": {
@@ -220,18 +459,18 @@ PACKAGES: dict[str, dict] = {
         "department": "slimming",
         "sub_service": "_any_",
         "total_sessions": 10,
-        "price_omr": 380.0,
-        "regular_price_omr": 600.0,
+        "price_omr": 700.0,
+        "regular_price_omr": 900.0,
         "validity_months": 6,
     },
-    "beauty_skin_lift_3": {
-        "name_en": "Skin Lift — 3 Sessions",
-        "name_ar": "شد البشرة — 3 جلسات",
-        "department": "beauty",
-        "sub_service": "skin_lift",
-        "total_sessions": 3,
-        "price_omr": 150.0,
-        "regular_price_omr": 180.0,
+    "dermatology_chemical_peel_4": {
+        "name_en": "Chemical Peel — 4 Sessions",
+        "name_ar": "التقشير الكيميائي — 4 جلسات",
+        "department": "dermatology",
+        "sub_service": "chemical_peel",
+        "total_sessions": 4,
+        "price_omr": 300.0,
+        "regular_price_omr": 360.0,
         "validity_months": 6,
     },
 }
@@ -239,14 +478,14 @@ PACKAGES: dict[str, dict] = {
 
 # Each department's bookings live in their own worksheet (tab) inside the
 # main Google Sheet. The receptionist gets one clean per-dept view instead
-# of having to filter a single mixed sheet — the value showed up in
-# real use when bookings stacked in raw arrival order and the human kept
-# misreading them.
+# of having to filter a single mixed sheet.
 DEPARTMENT_SHEET_NAMES = {
-    "dentistry": "Dentistry",
-    "laser_hair_removal": "Laser",
+    "dermatology": "Dermatology",
+    "aesthetics": "Aesthetics",
+    "regenerative": "Regenerative",
     "slimming": "Slimming",
-    "beauty": "Beauty",
+    "gynecology": "Gynecology",
+    "laser_hair_removal": "Laser Hair Removal",
 }
 
 

@@ -37,9 +37,9 @@ _STATE_FILE = (
 )
 _lock = threading.Lock()
 
-DICTIONARY_NAME = "Noora Clinic Pronunciation"
+DICTIONARY_NAME = "Lavora Clinic Pronunciation"
 DICTIONARY_DESCRIPTION = (
-    "Custom pronunciations for Noora Clinic — brand names, medical "
+    "Custom pronunciations for Lavora Clinic — brand names, medical "
     "terms, doctor names, and Arabic-English loanwords."
 )
 
@@ -49,9 +49,11 @@ DICTIONARY_DESCRIPTION = (
 # without requiring IPA knowledge.
 RULES = [
     # ---- Clinic brand & contact ----
-    {"string_to_replace": "Noora Clinic", "alias": "Noora Clinic"},
-    {"string_to_replace": "ovvocompany", "alias": "ovvo company"},
-    {"string_to_replace": "@ovvocompany", "alias": "at ovvo company"},
+    {"string_to_replace": "Lavora Clinic", "alias": "Lavora Clinic"},
+    {"string_to_replace": "Lavora", "alias": "Lavora"},
+    {"string_to_replace": "lavoraclinic.com", "alias": "lavora clinic dot com"},
+    {"string_to_replace": "lavoraclinic.om", "alias": "lavora clinic dot O M"},
+    {"string_to_replace": "info@lavoraclinic.com", "alias": "info at lavora clinic dot com"},
 
     # ---- Currency ----
     # Without this, "OMR" gets read as "O M R" letter-by-letter.
@@ -59,36 +61,60 @@ RULES = [
     {"string_to_replace": " omr ", "alias": " Omani rials "},
 
     # ---- Common English loanwords inside Arabic context ----
-    # The cloned Omani voice handles pure Arabic well, but mid-Arabic
-    # English brand names sometimes blur. Splitting helps.
     {"string_to_replace": "واتساب", "alias": "واتس آب"},
     {"string_to_replace": "إنستغرام", "alias": "إنستا غرام"},
     {"string_to_replace": "WhatsApp", "alias": "WhatsApp"},
     {"string_to_replace": "Instagram", "alias": "Instagram"},
 
+    # ---- Aesthetic / dermatology brand names ----
+    # Lavora's service catalog is full of branded device & treatment names
+    # that English-trained voices read decently but Arabic-trained voices
+    # mangle. Aliases force the right syllable break.
+    {"string_to_replace": "Frax Pro", "alias": "Frax Pro"},
+    {"string_to_replace": "Picoway", "alias": "Pico Way"},
+    {"string_to_replace": "RedTouch", "alias": "Red Touch"},
+    {"string_to_replace": "Profhilo", "alias": "Pro Filo"},
+    {"string_to_replace": "Polynucleotides", "alias": "Poly nucleotides"},
+    {"string_to_replace": "Endolift", "alias": "Endo lift"},
+    {"string_to_replace": "Fotona 4D", "alias": "Fotona four D"},
+    {"string_to_replace": "Onda Plus", "alias": "Onda Plus"},
+    {"string_to_replace": "Redustim", "alias": "Redu stim"},
+    {"string_to_replace": "Aptos", "alias": "Aptos"},
+    {"string_to_replace": "Vaginoplasty", "alias": "Vagino plasty"},
+    {"string_to_replace": "Labiaplasty", "alias": "Labia plasty"},
+    {"string_to_replace": "Mesotherapy", "alias": "Meso therapy"},
+    {"string_to_replace": "Exosome", "alias": "Exo some"},
+    {"string_to_replace": "PRP", "alias": "P R P"},
+
     # ---- Medical / aesthetic terms in Arabic ----
-    # Diacritics encourage the TTS to use the right vowels. Cloned
-    # voices respect the script — adding short vowels (fatḥa/kasra/ḍamma)
-    # gives the engine more signal.
+    # Diacritics encourage the TTS to use the right vowels.
     {"string_to_replace": "بوتوكس", "alias": "بُوتُوكْس"},
     {"string_to_replace": "فيلر", "alias": "فِيلَر"},
     {"string_to_replace": "ليزر", "alias": "لَيزَر"},
-    {"string_to_replace": "شفارزي", "alias": "شِفارزي"},
     {"string_to_replace": "أوندا", "alias": "أُوندا"},
-    {"string_to_replace": "راديو ستيم", "alias": "رَاديو سْتيم"},
-    {"string_to_replace": "حشو", "alias": "حَشْو"},
-    {"string_to_replace": "تلبيس", "alias": "تَلبيس"},
-    {"string_to_replace": "زراعة", "alias": "زِرَاعة"},
+    {"string_to_replace": "بروفايلو", "alias": "بُروفَايلو"},
+    {"string_to_replace": "ميزوثيرابي", "alias": "ميزو ثيرابي"},
+    {"string_to_replace": "إكسوسوم", "alias": "إكسو سوم"},
+    {"string_to_replace": "إندوليفت", "alias": "إندو ليفت"},
+    {"string_to_replace": "فوتونا", "alias": "فُوتُونا"},
 
-    # ---- Doctor names — ensure correct vowels ----
-    {"string_to_replace": "الدكتورة سارة", "alias": "الدكتورة سَارة"},
-    {"string_to_replace": "الدكتورة أماني", "alias": "الدكتورة أَماني"},
+    # ---- Doctor names — ensure correct vowels (Lavora team) ----
+    {"string_to_replace": "Dr. Soraya", "alias": "Doctor Soraya"},
+    {"string_to_replace": "Dr. Neda", "alias": "Doctor Neda"},
+    {"string_to_replace": "Dr. Hussein", "alias": "Doctor Hussein"},
+    {"string_to_replace": "Dr. Amani", "alias": "Doctor Amani"},
+    {"string_to_replace": "Dr. Leila", "alias": "Doctor Leila"},
+    {"string_to_replace": "الدكتورة ثريا", "alias": "الدكتورة ثُرَيَّا"},
+    {"string_to_replace": "الدكتورة ندى", "alias": "الدكتورة نَدَى"},
     {"string_to_replace": "الدكتور حسين", "alias": "الدكتور حُسَين"},
-    {"string_to_replace": "الدكتورة إيناس", "alias": "الدكتورة إِيناس"},
+    {"string_to_replace": "الدكتورة أماني", "alias": "الدكتورة أَماني"},
+    {"string_to_replace": "الدكتورة ليلى", "alias": "الدكتورة لَيلى"},
 
     # ---- Location ----
     {"string_to_replace": "الغبرة", "alias": "الغُبرَة"},
     {"string_to_replace": "Al Ghubra", "alias": "Al Ghubra"},
+    {"string_to_replace": "Al Ghubrah", "alias": "Al Ghubra"},
+    {"string_to_replace": "Al Marafah", "alias": "Al Marafa"},
 ]
 
 

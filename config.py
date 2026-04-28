@@ -44,13 +44,18 @@ ELEVENLABS_MODEL = os.getenv("ELEVENLABS_MODEL", "eleven_multilingual_v2")
 # Used for real-time transcription during live phone conversations.
 DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
 
-# Business
-BUSINESS_NAME = os.getenv("BUSINESS_NAME", "Noora Clinic")
-BUSINESS_WORKING_HOURS_START = os.getenv("BUSINESS_WORKING_HOURS_START", "10:00")
-BUSINESS_WORKING_HOURS_END = os.getenv("BUSINESS_WORKING_HOURS_END", "20:00")
-BUSINESS_LASER_END = os.getenv("BUSINESS_LASER_END", "23:00")
-BUSINESS_BREAK_START = os.getenv("BUSINESS_BREAK_START", "14:00")
-BUSINESS_BREAK_END = os.getenv("BUSINESS_BREAK_END", "15:00")
+# Business — Lavora Clinic, Muscat. Hours per the public brand brief.
+BUSINESS_NAME = os.getenv("BUSINESS_NAME", "Lavora Clinic")
+BUSINESS_TAGLINE = os.getenv(
+    "BUSINESS_TAGLINE", "Where Science, Beauty, and Longevity Meet"
+)
+BUSINESS_WORKING_HOURS_START = os.getenv("BUSINESS_WORKING_HOURS_START", "09:00")
+BUSINESS_WORKING_HOURS_END = os.getenv("BUSINESS_WORKING_HOURS_END", "22:00")
+# Laser-specific late close kept for backward compat; Lavora doesn't use a
+# split shift, but any code that reads this still gets a sensible value.
+BUSINESS_LASER_END = os.getenv("BUSINESS_LASER_END", "22:00")
+BUSINESS_BREAK_START = os.getenv("BUSINESS_BREAK_START", "")
+BUSINESS_BREAK_END = os.getenv("BUSINESS_BREAK_END", "")
 BUSINESS_TIMEZONE = os.getenv("BUSINESS_TIMEZONE", "Asia/Dubai")
 BUSINESS_CLOSED_DAY = os.getenv("BUSINESS_CLOSED_DAY", "Friday")
 
@@ -58,11 +63,20 @@ BUSINESS_CLOSED_DAY = os.getenv("BUSINESS_CLOSED_DAY", "Friday")
 _holidays_raw = os.getenv("BUSINESS_HOLIDAYS", "")
 BUSINESS_HOLIDAYS = [d.strip() for d in _holidays_raw.split(",") if d.strip()]
 
-# Clinic location & contact — surfaced to the voice agent for callers
+# Clinic location & contact — surfaced to the receptionist for callers
 # asking where we're located, how to reach us after hours, etc.
-CLINIC_ADDRESS_EN = os.getenv("CLINIC_ADDRESS_EN", "Muscat, Oman")
-CLINIC_ADDRESS_AR = os.getenv("CLINIC_ADDRESS_AR", "مسقط، سلطنة عمان")
-CLINIC_EMERGENCY_PHONE = os.getenv("CLINIC_EMERGENCY_PHONE", "")
+CLINIC_ADDRESS_EN = os.getenv(
+    "CLINIC_ADDRESS_EN",
+    "18 November Street, Al Marafah Street, Building 123, "
+    "Al Ghubrah Ash Shamaliyyah, Muscat, Oman",
+)
+CLINIC_ADDRESS_AR = os.getenv(
+    "CLINIC_ADDRESS_AR",
+    "شارع 18 نوفمبر، شارع المعرفة، مبنى 123، الغبرة الشمالية، مسقط، سلطنة عمان",
+)
+CLINIC_EMERGENCY_PHONE = os.getenv("CLINIC_EMERGENCY_PHONE", "+968 7111 5617")
+CLINIC_EMAIL = os.getenv("CLINIC_EMAIL", "info@lavoraclinic.com")
+CLINIC_WEBSITE = os.getenv("CLINIC_WEBSITE", "lavoraclinic.om")
 CLINIC_INSTAGRAM = os.getenv("CLINIC_INSTAGRAM", "")
 CLINIC_PARKING = os.getenv("CLINIC_PARKING", "available").lower() == "available"
 
@@ -76,5 +90,5 @@ TWILIO_PUBLIC_BASE_URL = os.getenv("TWILIO_PUBLIC_BASE_URL", "")
 
 # Admin dashboard auth (basic password gate; not strong but enough for
 # a single-clinic deployment behind a tunnel).
-DASHBOARD_PASSWORD = os.getenv("DASHBOARD_PASSWORD", "noora2026")
+DASHBOARD_PASSWORD = os.getenv("DASHBOARD_PASSWORD", "lavora2026")
 DASHBOARD_SECRET_KEY = os.getenv("DASHBOARD_SECRET_KEY", "dev-only-change-me")

@@ -47,10 +47,12 @@ _STATE_FILE = os.path.join(
 )
 
 DEPARTMENT_LABELS = {
-    "dentistry": "Dentistry",
+    "dermatology": "Dermatology & Skin Care",
+    "aesthetics": "Non-Surgical Aesthetics",
+    "regenerative": "Regenerative Therapies",
+    "slimming": "Body Slimming",
+    "gynecology": "Aesthetic Gynecology",
     "laser_hair_removal": "Laser Hair Removal",
-    "slimming": "Slimming",
-    "beauty": "Beauty & Aesthetics",
 }
 
 
@@ -60,14 +62,21 @@ def _normalize_department(raw: str) -> str | None:
     s = raw.strip().lower()
     if s in DEPARTMENT_LABELS:
         return s
-    if "dent" in s:
-        return "dentistry"
-    if "laser" in s:
+    # Loose matching for human-typed event titles. Order matters: more
+    # specific keywords first so 'laser hair' beats the generic 'laser'
+    # match used by dermatology lasers (Frax, Picoway, etc).
+    if "laser hair" in s or s == "laser":
         return "laser_hair_removal"
-    if "slim" in s:
+    if "regen" in s or "prp" in s or "exosome" in s or "stem cell" in s:
+        return "regenerative"
+    if "gyne" in s or "vagino" in s or "labia" in s:
+        return "gynecology"
+    if "derma" in s or "skin" in s:
+        return "dermatology"
+    if "aesthet" in s or "botox" in s or "filler" in s or "thread" in s:
+        return "aesthetics"
+    if "slim" in s or "body" in s:
         return "slimming"
-    if "beauty" in s or "aesthetic" in s:
-        return "beauty"
     return None
 
 
