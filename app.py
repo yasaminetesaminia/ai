@@ -26,7 +26,7 @@ from apscheduler.triggers.cron import CronTrigger
 
 import config
 from services import whatsapp, instagram, speech_to_text, claude_ai
-from services import twilio_voice, voice_audio_store, dashboard_data
+from services import twilio_voice, voice_audio_store, voice_jobs, dashboard_data
 from services.reminder import send_reminders
 from services.sync import sync_all
 from services.retention import run_retention
@@ -356,6 +356,28 @@ def _respond_url() -> str:
     return f"{base}/voice/respond"
 
 
+def _poll_url(job_id: str) -> str:
+    base = config.TWILIO_PUBLIC_BASE_URL.rstrip("/")
+    return f"{base}/voice/poll/{job_id}"
+
+
+# How long each /voice/poll request blocks waiting for the job to finish
+# before responding with a Pause + Redirect. Must stay safely below
+# Twilio's 15s webhook timeout.
+_VOICE_POLL_WAIT_SECONDS = 10
+
+
+def _process_voice_turn(caller: str, recording_url: str) -> dict:
+    """Background work for one caller turn — download → STT → Claude → TTS.
+
+    Lifted out of the request handler so the webhook can return TwiML in
+    under a second; the slow path runs in a thread tracked by voice_jobs.
+    """
+    audio_in = twilio_voice.download_recording(recording_url)
+    session = VoiceSession(caller_phone=caller)
+    return session.respond_to_audio(audio_in, audio_mime="audio/wav")
+
+
 @app.route("/voice/incoming", methods=["POST"])
 def voice_incoming():
     """Twilio webhook for the start of a call. Plays the greeting and starts
@@ -386,8 +408,14 @@ def voice_incoming():
 @app.route("/voice/respond", methods=["POST"])
 def voice_respond():
     """Twilio webhook called after each caller turn — they spoke, Twilio
-    recorded it, now Twilio sends us the recording URL so we can transcribe
-    and reply.
+    recorded it, now Twilio sends us the recording URL.
+
+    We MUST respond in under ~15s or Twilio plays "an application error
+    has occurred" and drops the call. The full pipeline (STT + Claude
+    with tool use + TTS) routinely exceeds that, so we queue the work on
+    a background thread and immediately redirect Twilio to /voice/poll
+    to wait for the result. The call stays alive across as many poll
+    rounds as the work needs.
     """
     if not twilio_voice.is_configured():
         return Response(twilio_voice.out_of_service_twiml(), mimetype="application/xml")
@@ -400,22 +428,44 @@ def voice_respond():
         logger.info("No recording URL from %s, ending call", caller)
         return Response(twilio_voice.out_of_service_twiml(), mimetype="application/xml")
 
-    try:
-        audio_in = twilio_voice.download_recording(recording_url)
-        session = VoiceSession(caller_phone=caller)
-        # Twilio recordings are downloaded as WAV (uncompressed) for best
-        # STT accuracy on phone-quality Arabic.
-        result = session.respond_to_audio(audio_in, audio_mime="audio/wav")
-    except Exception as e:
-        logger.error("Voice turn failed for %s: %s", caller, e, exc_info=True)
+    job_id = voice_jobs.submit(_process_voice_turn, caller, recording_url)
+    logger.info("Queued voice turn job=%s for %s", job_id, caller)
+
+    # Immediate redirect — no upfront pause. The poll endpoint will hold
+    # for up to 10s waiting on the job before redirecting again, so most
+    # turns produce audio on the first poll round.
+    twiml = twilio_voice.hold_and_redirect_twiml(_poll_url(job_id), pause_seconds=0)
+    return Response(twiml, mimetype="application/xml")
+
+
+@app.route("/voice/poll/<job_id>", methods=["POST", "GET"])
+def voice_poll(job_id: str):
+    """Wait for the background turn job. If it's done, play the reply and
+    record the next turn. If not, redirect to ourselves so Twilio keeps
+    the call alive while the pipeline finishes.
+
+    Each poll round blocks for at most _VOICE_POLL_WAIT_SECONDS — short
+    enough to stay under Twilio's webhook timeout, long enough that most
+    turns complete in a single round.
+    """
+    if not twilio_voice.is_configured():
+        return Response(twilio_voice.out_of_service_twiml(), mimetype="application/xml")
+
+    caller = request.form.get("From", "unknown")
+    done, result, error = voice_jobs.wait(job_id, timeout=_VOICE_POLL_WAIT_SECONDS)
+
+    if not done:
+        # Still working — keep the call alive with a brief pause and poll again.
+        twiml = twilio_voice.hold_and_redirect_twiml(_poll_url(job_id), pause_seconds=2)
+        return Response(twiml, mimetype="application/xml")
+
+    if error or not result or not result.get("audio"):
+        logger.error("Voice job %s for %s ended without audio (error=%s)",
+                     job_id, caller, error)
         return Response(twilio_voice.out_of_service_twiml(), mimetype="application/xml")
 
     logger.info("Caller=%s heard=%r reply=%r",
                 caller, result.get("transcript"), result.get("reply_text"))
-
-    if not result.get("audio"):
-        # Claude returned no audio (rare); hang up gracefully.
-        return Response(twilio_voice.out_of_service_twiml(), mimetype="application/xml")
 
     file_id = voice_audio_store.store(result["audio"])
     twiml = twilio_voice.play_and_record_twiml(

@@ -79,6 +79,23 @@ def play_and_hangup_twiml(audio_url: str) -> str:
     )
 
 
+def hold_and_redirect_twiml(redirect_url: str, pause_seconds: int = 2) -> str:
+    """Keep the call alive for `pause_seconds`, then redirect Twilio to
+    poll the next stage of the pipeline.
+
+    Used by the async voice flow: /voice/respond returns this immediately
+    so Twilio's 15s webhook budget is never blown by slow STT/Claude/TTS.
+    A short Pause is enough to feel natural — callers don't notice 1-2
+    seconds of silence after they finish speaking, and polling kicks in
+    again right after.
+    """
+    pause = f'<Pause length="{pause_seconds}"/>' if pause_seconds > 0 else ''
+    return _twiml(
+        f'{pause}'
+        f'<Redirect method="POST">{escape(redirect_url)}</Redirect>'
+    )
+
+
 def _twiml(body: str) -> str:
     return f'<?xml version="1.0" encoding="UTF-8"?><Response>{body}</Response>'
 
