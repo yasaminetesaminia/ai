@@ -282,7 +282,19 @@ def _transcribe_bytes(audio_bytes: bytes, mime: str) -> str:
         tmp.write(cleaned)
         tmp_path = Path(tmp.name)
     try:
-        result = deepgram_stt.transcribe_file(tmp_path)
+        # Bilingual demo: caller might be Arabic-speaking OR English-speaking,
+        # so let whisper detect per utterance instead of forcing language=ar.
+        # The hallucination filter (is_likely_hallucination) still catches the
+        # "Thanks for watching" residue from misdetected silent clips.
+        result = deepgram_stt.transcribe_file(
+            tmp_path,
+            params={
+                "model": "whisper-large",
+                "detect_language": "true",
+                "smart_format": "true",
+                "punctuate": "true",
+            },
+        )
         return deepgram_stt.extract_transcript(result)
     finally:
         try:
