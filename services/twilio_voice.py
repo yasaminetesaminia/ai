@@ -63,7 +63,7 @@ def play_and_record_twiml(audio_url: str, action_url: str) -> str:
         f'<Play>{escape(audio_url)}</Play>'
         f'<Record action="{escape(action_url)}" '
         f'method="POST" '
-        f'timeout="3" '
+        f'timeout="2" '
         f'maxLength="20" '
         f'playBeep="false" '
         f'trim="trim-silence" '

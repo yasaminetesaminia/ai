@@ -241,12 +241,16 @@ def _normalize_content(content):
 
 
 def _transcribe_bytes(audio_bytes: bytes, mime: str) -> str:
-    """Denoise + normalize phone audio, then run Whisper. Phone calls have
-    much lower audio quality than chat voice notes, so the preprocessing
-    payoff is bigger here.
+    """Run STT on a phone-call recording.
+
+    Uses Deepgram nova-3 (multilingual) instead of whisper-large because
+    on live phone calls latency dominates: nova-3 returns in well under a
+    second on short clips while whisper-large takes 2-5s. Quality on
+    Arabic phone audio is comparable, and nova-3 handles background hiss
+    well enough that we also skip the 1-3s ffmpeg denoise pass that the
+    WhatsApp voice-note path runs.
     """
     import tempfile
-    from services import audio_preprocess
 
     suffix = {
         "audio/mpeg": ".mp3",
@@ -256,15 +260,19 @@ def _transcribe_bytes(audio_bytes: bytes, mime: str) -> str:
         "audio/ogg": ".ogg",
     }.get(mime, ".mp3")
 
-    cleaned = audio_preprocess.denoise_and_normalize(audio_bytes, suffix=suffix)
-    if cleaned is not audio_bytes:
-        suffix = ".wav"
-
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
-        tmp.write(cleaned)
+        tmp.write(audio_bytes)
         tmp_path = Path(tmp.name)
     try:
-        result = deepgram_stt.transcribe_file(tmp_path)
+        result = deepgram_stt.transcribe_file(
+            tmp_path,
+            params={
+                "model": "nova-3",
+                "language": "multi",
+                "smart_format": "true",
+                "punctuate": "true",
+            },
+        )
         return deepgram_stt.extract_transcript(result)
     finally:
         try:

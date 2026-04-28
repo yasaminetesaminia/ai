@@ -456,7 +456,7 @@ def voice_poll(job_id: str):
 
     if not done:
         # Still working — keep the call alive with a brief pause and poll again.
-        twiml = twilio_voice.hold_and_redirect_twiml(_poll_url(job_id), pause_seconds=2)
+        twiml = twilio_voice.hold_and_redirect_twiml(_poll_url(job_id), pause_seconds=1)
         return Response(twiml, mimetype="application/xml")
 
     if error or not result or not result.get("audio"):
