@@ -255,16 +255,16 @@ def _normalize_content(content):
 
 
 def _transcribe_bytes(audio_bytes: bytes, mime: str) -> str:
-    """Run STT on a phone-call recording.
+    """Denoise + normalize phone audio, then run whisper-large.
 
-    Uses Deepgram nova-3 (multilingual) instead of whisper-large because
-    on live phone calls latency dominates: nova-3 returns in well under a
-    second on short clips while whisper-large takes 2-5s. Quality on
-    Arabic phone audio is comparable, and nova-3 handles background hiss
-    well enough that we also skip the 1-3s ffmpeg denoise pass that the
-    WhatsApp voice-note path runs.
+    Speed-vs-accuracy: we tried Deepgram nova-3 to shave 2-4s but accuracy
+    on phone-quality Omani Arabic dropped sharply — callers had to repeat
+    almost every utterance. Reverted to whisper-large + ffmpeg denoise,
+    which is the proven combo from the morning calls that worked end-to-end.
+    The async poll pipeline absorbs the extra latency without dropping calls.
     """
     import tempfile
+    from services import audio_preprocess
 
     suffix = {
         "audio/mpeg": ".mp3",
@@ -274,19 +274,15 @@ def _transcribe_bytes(audio_bytes: bytes, mime: str) -> str:
         "audio/ogg": ".ogg",
     }.get(mime, ".mp3")
 
+    cleaned = audio_preprocess.denoise_and_normalize(audio_bytes, suffix=suffix)
+    if cleaned is not audio_bytes:
+        suffix = ".wav"
+
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
-        tmp.write(audio_bytes)
+        tmp.write(cleaned)
         tmp_path = Path(tmp.name)
     try:
-        result = deepgram_stt.transcribe_file(
-            tmp_path,
-            params={
-                "model": "nova-3",
-                "language": "multi",
-                "smart_format": "true",
-                "punctuate": "true",
-            },
-        )
+        result = deepgram_stt.transcribe_file(tmp_path)
         return deepgram_stt.extract_transcript(result)
     finally:
         try:
