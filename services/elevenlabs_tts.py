@@ -44,10 +44,13 @@ _CACHE_DIR.mkdir(parents=True, exist_ok=True)
 # Important: lower stability is what kills the "AI-sounding" feel. Above
 # 0.65 the voice gets metronomic; below 0.40 it loses consistency.
 DEFAULT_SETTINGS = {
-    "stability": 0.50,
+    # Professional consistent receptionist — never excited, never angry,
+    # never bored. Tuned after live-call feedback that the previous low-
+    # stability profile sounded moody/inconsistent across turns.
+    "stability": 0.70,        # high → consistent tone, no emotional swings
     "similarity_boost": 0.85,
-    "style": 0.30,
-    "speed": 0.92,
+    "style": 0.15,            # low → neutral/calm, no theatrical flourishes
+    "speed": 0.92,            # slightly slower → composed, not rushed
     "use_speaker_boost": True,
 }
 
