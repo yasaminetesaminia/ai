@@ -44,18 +44,19 @@ ELEVENLABS_MODEL = os.getenv("ELEVENLABS_MODEL", "eleven_multilingual_v2")
 # Used for real-time transcription during live phone conversations.
 DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
 
-# Business — Lavora Clinic, Muscat. Hours per the public brand brief.
-BUSINESS_NAME = os.getenv("BUSINESS_NAME", "Lavora Clinic")
-BUSINESS_TAGLINE = os.getenv(
-    "BUSINESS_TAGLINE", "Where Science, Beauty, and Longevity Meet"
-)
-BUSINESS_WORKING_HOURS_START = os.getenv("BUSINESS_WORKING_HOURS_START", "09:00")
-BUSINESS_WORKING_HOURS_END = os.getenv("BUSINESS_WORKING_HOURS_END", "22:00")
-# Laser-specific late close kept for backward compat; Lavora doesn't use a
-# split shift, but any code that reads this still gets a sensible value.
-BUSINESS_LASER_END = os.getenv("BUSINESS_LASER_END", "22:00")
-BUSINESS_BREAK_START = os.getenv("BUSINESS_BREAK_START", "")
-BUSINESS_BREAK_END = os.getenv("BUSINESS_BREAK_END", "")
+# Business — Lavora Clinic, Muscat.
+#
+# Brand identity (name, tagline, hours) is hardcoded — NOT env-driven —
+# so a stale Railway env var from the previous Noora deployment can't
+# override it. To repurpose this codebase for a different clinic later,
+# edit these constants directly.
+BUSINESS_NAME = "Lavora Clinic"
+BUSINESS_TAGLINE = "Where Science, Beauty, and Longevity Meet"
+BUSINESS_WORKING_HOURS_START = "09:00"
+BUSINESS_WORKING_HOURS_END = "22:00"
+BUSINESS_LASER_END = "22:00"  # kept for backward compat; no split shift
+BUSINESS_BREAK_START = ""
+BUSINESS_BREAK_END = ""
 BUSINESS_TIMEZONE = os.getenv("BUSINESS_TIMEZONE", "Asia/Dubai")
 BUSINESS_CLOSED_DAY = os.getenv("BUSINESS_CLOSED_DAY", "Friday")
 

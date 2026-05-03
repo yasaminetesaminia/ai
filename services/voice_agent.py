@@ -79,18 +79,14 @@ class VoiceSession:
 
     # ---------- public audio API ----------
     def greeting(self) -> bytes:
-        """Opening for Lavora Clinic — English-first per the brand brief
-        ("Primary language: English. Secondary: Arabic"), with a short
-        Arabic acknowledgement so Arabic-speaking callers know they can
-        reply in Arabic too.
+        """Short bilingual opening — Arabic first (Omani-style "أهلاً فيك")
+        so Arabic-speaking callers feel at home, then English for everyone
+        else. The whole thing fits in a single breath (~3 seconds) — long
+        greetings make the line feel slow before the conversation starts.
 
         Cached after first generation so repeat callers get sub-100ms playback.
         """
-        text = (
-            "Thank you for calling Lavora Clinic, where science, beauty, "
-            "and longevity meet. How may I assist you today? "
-            "أهلاً بك، تقدر تتكلم عربي إذا تحب."
-        )
+        text = "أهلاً فيك في عيادة لافورا. Welcome to Lavora Clinic."
         return elevenlabs_tts.synthesize(text)
 
     def respond_to_audio(self, audio_bytes: bytes, audio_mime: str = "audio/mpeg") -> dict:

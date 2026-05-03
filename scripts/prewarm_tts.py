@@ -21,7 +21,7 @@ from services import elevenlabs_tts  # noqa: E402
 # never wait on these. Keep this list small — only repeat-traffic phrases.
 COMMON_PHRASES = [
     # Lavora's bilingual greeting (most-played phrase by far)
-    "Thank you for calling Lavora Clinic, where science, beauty, and longevity meet. How may I assist you today? أهلاً بك، تقدر تتكلم عربي إذا تحب.",
+    "أهلاً فيك في عيادة لافورا. Welcome to Lavora Clinic.",
     # Re-prompts when STT mishears
     "Sorry, I didn't catch that — could you say it again?",
     "آسفة، ما سمعت. ممكن تعيدي؟",
